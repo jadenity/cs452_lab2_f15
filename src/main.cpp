@@ -46,9 +46,10 @@ int main(int argc, char** argv) {
   for (int m = lower; m <= upper; m++) {
     if (!list[m]) cout << m << " ";
   }
-  
+
   cout << endl;
 
+  delete[] list;
   return 0;
 }
 
