@@ -32,6 +32,8 @@ void Server::setup() {
     fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
     exit(1);
   }
+
+  freeaddrinfo(servinfo);
 }
 
 const char *Server::getPort() {

@@ -32,6 +32,7 @@ void Client::setup() {
   status = getaddrinfo(host, port, &hints, &servinfo);
 
   // servinfo now points to a linked list of 1 or more struct addrinfos
+  freeaddrinfo(servinfo);
 }
 
 const char *Client::getHost() {

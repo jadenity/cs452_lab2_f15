@@ -75,6 +75,8 @@ int main(int argc, char** argv) {
   cout << endl;
 
   delete[] list;
+  delete client;
+  delete server;
   return 0;
 }
 
