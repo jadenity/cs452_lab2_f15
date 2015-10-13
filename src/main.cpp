@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string.h>
 #include "sieve.hpp"
+#include "client.hpp"
+#include "server.hpp"
 
 using namespace std;
 
@@ -40,6 +42,29 @@ int main(int argc, char** argv) {
 
   cout << "  Upper limit: " << upper << endl;
       
+
+  // Use port 9382 for consistency
+  const char *port = "9382";
+
+  Client *client = new Client("thing-04.cs.uwec.edu", "9382"); 
+
+  cout << "host: " << (*client).getHost() << endl;
+  cout << "port: " << (*client).getPort() << endl;
+
+
+  Server *server = new Server("9382");
+
+  cout << "server port: " << (*server).getPort() << endl;
+
+
+
+
+
+
+
+
+
+
   // false means prime, true means composite
   bool* list = sieve(upper);
       

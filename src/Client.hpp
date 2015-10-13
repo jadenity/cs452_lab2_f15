@@ -6,12 +6,14 @@
 class Client {
       
   private:
-    std::string host;
-    int port;    
+    const char *host;
+    const char *port;
   public:
-    Client(std::string host, int port);
+    Client(const char *host, const char *port);
     void connect();
-    virtual ~Client();
+    const char *getHost();
+    const char *getPort();
+    void setup();
 
 };
 
