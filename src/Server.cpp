@@ -1,9 +1,11 @@
-#include "Server.hpp"
+#include "server.hpp"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
+#include <stdio.h>
 
 using namespace std;
 

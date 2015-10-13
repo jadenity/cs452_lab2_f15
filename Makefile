@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -Wall -g
-SOURCES = src/main.cpp src/sieve.cpp src/Client.cpp
+SOURCES = src/main.cpp src/sieve.cpp src/Client.cpp src/Server.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 	LDFLAGS = -lboost_system-mt -lboost_thread-mt
 
