@@ -13,9 +13,9 @@ main: $(OBJECTS)
 	  $(CC) $(OBJECTS) -o main $(CFLAGS) $(LDFLAGS)
 		
 clean:
-	  @echo "Cleaning..."
-		@rm -f $(OBJECTS) main
-		  @echo "Done!"
+	@echo "Cleaning..."
+	@rm -f $(OBJECTS) main
+	@echo "Done!"
 			
 .PHONY: clean deploy
 
