@@ -13,7 +13,7 @@ class Client {
     void connect();
     const char *getHost();
     const char *getPort();
-    void setup();
+    int setup();
 
 };
 
