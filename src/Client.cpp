@@ -5,25 +5,38 @@
 #include <netdb.h>
 #include <iostream>
 #include <cstring>
+#include <stdio.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <stdlib.h>
+
 
 //using namespace boost::asio;
 using namespace std;
 
+// Max # of bytes
+#define MAXDATASIZE 100
+
 Client::Client(const char *host, const char *port) {
   this->host = host;
   this->port = port;
-  setup();
 }
 
-void Client::connect() {
-
+// get sockaddr, IPv4 or IPv6:
+void *Client::get_in_addr(struct sockaddr *sa) {
+  if (sa->sa_family == AF_INET) {
+    return &(((struct sockaddr_in*)sa)->sin_addr);
+  }
+  
+  return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
 int Client::setup() {
   int sockfd, status, numbytes;
   struct addrinfo hints, *servinfo, *p;
   char s[INET6_ADDRSTRLEN];
-  char buf[100];
+  char buf[MAXDATASIZE];
 
   memset(&hints, 0, sizeof hints);  // empty the struct
   hints.ai_family = AF_INET;        // use IPv4
@@ -35,7 +48,7 @@ int Client::setup() {
     return 1;
   }
 
-  // loolp until you find the first socket to connect to
+  // loop until you find the first socket to connect to
   for (p = servinfo; p != NULL; p = p->ai_next) {
     if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
       perror("error in client: socket");
@@ -71,6 +84,10 @@ int Client::setup() {
   buf[numbytes] = '\0';
 
   printf("client: received '%s'\n",buf);
+
+  // cout << "Client sleeping..." << endl;
+
+  // sleep(10);
 
   close(sockfd);
 

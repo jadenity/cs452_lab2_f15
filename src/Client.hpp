@@ -10,10 +10,10 @@ class Client {
     const char *port;
   public:
     Client(const char *host, const char *port);
-    void connect();
     const char *getHost();
     const char *getPort();
     int setup();
+    void *get_in_addr(struct sockaddr *sa);
 
 };
 

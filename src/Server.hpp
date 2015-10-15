@@ -9,9 +9,10 @@ class Server {
     const char *port;
   public:
     Server(const char *port);
-    void connect();
     const char *getPort();
-    void setup();
+    int setup();
+    void *get_in_addr(struct sockaddr *sa);
+    void comm(int sockfd, int new_fd);
   
 };
 
