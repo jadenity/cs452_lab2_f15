@@ -100,6 +100,7 @@ int main(int argc, char** argv) {
 
     cout << endl;
 
+    (*client).closeSocket();
 
     delete[] list;
     delete client;
@@ -119,8 +120,6 @@ int main(int argc, char** argv) {
 
     delete server;
   }
-
-
 
 
 

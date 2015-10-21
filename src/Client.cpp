@@ -11,6 +11,8 @@
 #include <errno.h>
 #include <stdlib.h>
 
+//Global Variables
+int sockfd;
 
 //using namespace boost::asio;
 using namespace std;
@@ -38,7 +40,7 @@ void *Client::get_in_addr(struct sockaddr *sa) {
  * This is the bulk of the code concerning implementing sockets.
  */
 int Client::setup() {
-  int sockfd, status, numbytes;			//error catching variables
+  int status, numbytes;			//error catching variables
   struct addrinfo hints, *servinfo, *p;		//defined in 
   char s[INET6_ADDRSTRLEN];			//??
   char buf[MAXDATASIZE];			//used for message output
@@ -94,9 +96,15 @@ int Client::setup() {
 
   // sleep(10);
 
-  close(sockfd); //closes socket connection. Seems to end the server as well.
+  
+
+  //close(sockfd); //closes socket connection. Seems to end the server as well (moved to method to be called by main).
 
   return 0;
+}
+
+void *Client::closeSocket(){
+  close(sockfd);
 }
 
 const char *Client::getHost() {

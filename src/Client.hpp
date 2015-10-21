@@ -12,6 +12,7 @@ class Client {
     Client(const char *host, const char *port);
     const char *getHost();
     const char *getPort();
+    void *closeSocket();
     int setup();
     void *get_in_addr(struct sockaddr *sa);
 
