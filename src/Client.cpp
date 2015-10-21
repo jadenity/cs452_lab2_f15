@@ -39,7 +39,7 @@ void *Client::get_in_addr(struct sockaddr *sa) {
  */
 int Client::setup() {
   int sockfd, status, numbytes;			//error catching variables
-  struct addrinfo hints, *servinfo, *p;		//?? (where's this being made/defined?)
+  struct addrinfo hints, *servinfo, *p;		//defined in 
   char s[INET6_ADDRSTRLEN];			//??
   char buf[MAXDATASIZE];			//used for message output
 

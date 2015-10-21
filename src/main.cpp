@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string.h>
+#include <sstream>
 #include "sieve.hpp"
 #include "client.hpp"
 #include "server.hpp"
@@ -10,24 +11,43 @@ using namespace std;
 
 int main(int argc, char** argv) {
 
-  string cli_or_serv;
+  // Validate # of arguments
   if (argc < 2) {
-    cout << "Usage: './main client' or './main server'" << endl;
+    cout << "Missing client/server argument." << endl;
     return 1;
-  } else {
-    cli_or_serv = argv[1];
-    if (!((cli_or_serv.compare("client") == 0) || (cli_or_serv.compare("server") == 0))) {
-      cout << "Usage: './main client' or './main server'" << endl;
-      return 1;
-    }
-    cout << "!!" << cli_or_serv << endl;
   }
 
+  // Validate first argument
+  string cli_or_serv = argv[1];
+  if (!((cli_or_serv.compare("client") == 0)
+        || (cli_or_serv.compare("server") == 0))) {
+    cout << "Enter 'client' or 'server' for the 1st argument." << endl;
+    return 1;
+  }
   // Use port 9382 for consistency
   const char *port = "9382";
 
   // Attempt to connect to server if client
   if (cli_or_serv.compare("client") == 0) {
+
+    // Make sure thing# is entered
+    if (argc < 3) {
+      cout << "Enter a thing# (4-6) for the 2nd argument." << endl;
+      return 1;
+    }
+
+    // Validate second argument
+    int thing = atoi(argv[2]);
+    if (thing < 4 || thing > 6) {
+      cout << "Enter a thing# between 4 and 6 for the 2nd argument." << endl;
+      return 1;
+    }
+
+    // Prepare the thing hostname
+    stringstream ss;
+    ss << "thing-0" << thing << ".cs.uwec.edu";
+    cout << "thing string: " << ss.str() << endl;
+
     Client *client = new Client("thing-04.cs.uwec.edu", "9382"); 
 
     cout << "host: " << (*client).getHost() << endl;
@@ -86,7 +106,7 @@ int main(int argc, char** argv) {
   // Connect to client if server
   if (cli_or_serv.compare("server") == 0) {
 
-    Server *server = new Server("9382");
+    Server *server = new Server(port);
 
     cout << "server port: " << (*server).getPort() << endl;
 
