@@ -1,0 +1,210 @@
+Personal notes first authored by Lucas Zutter
+
+
+KEY:
+
+*WORD indicates something probably worthwhile (the "*" especially).
+
+"~Partner" indicates things I didn't do. Everything not starting with ~ is something I did.
+
+"--MEETING START/ENDED--" indicates that I was with my partner when these notes were made / when work was done.
+
+
+
+NOTES:
+
+Beej's Guide (one of the reccomended references) is worth refering to for sockets. Currently read up to: 3 (start)
+
+git add . ++++++++ git commit -m "commit message" 
+
+Partner suggested "hackerrank.com" for getting familiar with programming C++ via exercises.
+
+
+
+DAYLY LOGS:
+
+10/13:
+
+--MEETING START--
+
+~Partner started the program last night, making a sieve that finds primes between 2 numbers entered by a user.
+	*Currently outputs every prime. Should change to output first and last few primes (probably 5).
+
+Tried Valgrind and found that the memset() used in sieve.cpp caused a memory leak. "detele[] list" was added at the end of main.cpp to resolve this.
+	However, since this is the last thing done in the whole program, there could be memory issues while the program is running.
+	It's worth noting that memset allocates all the memory needed all at once. Perhaps this isn't neccesary...
+	*IDEA: maybe we can limit how much memory is used by writing to temporary files?
+
+~Decided to go with TCP sockets.
+
+Used online random number generator to decide to use port 9382
+
+~Partner started working on sockets. Says we need a client and server.
+	~So far, the connection is set up, but not used.
+	Valgrind reveals new allocs being made. Deleting client and server solves all but 2 allocs.
+		Added more deletes in main and "freeadderinfo" to client and server classes. Fixed memory leaks.
+
+
+Actual socket needs to be made. Partner suggests Beej's guide section 6.
+Will also need to figure out threading.
+
+--MEETING ENDED--
+
+Nothing more done since meeting. Major oversleeping prevented any more from being done on 10/14.
+
+10/15:
+
+--MEETING START-- [Nothing happened since lat meeting]
+
+~Partner added code to Client.cpp based on example in Beej's Guide reference
+
+--MEETING ENDED-- [Partner went to other meeting]
+
+Had an issue with git not properly pulling. Made a new clone in alternate Lab2 folder/directory.
+
+Tried compiling current code and ran into a number of "not declared in this scope" errors (likely missing an include or two).
+
+
+--MEETING START-- [Partner back from other meeting]
+
+Errors in Client.cpp handled. Client::connect method removed (it was empty) to allow internal connect() function to work.
+
+Actual program works, but (*client).setup() in main causes connection failure.
+
+~Partner tweeked code. Server now gets defined first. However, client doesn't seem to get a connection. If switched back, Server doesn't connect.
+	Perhaps these things need to be done in a seperate thread?
+	Maybe run two Putty screens running two different copies of the program? <-- Current idea
+
+
+
+~Connection works. One putty window runs "./main server" then another runs "./main client"******************
+
+
+
+Noticed partner using forks. Suggested switching to threading.
+
+Client seems to disconnect right after connecting.
+	This is due to the connection being close early, not because of a bug.
+
+Current idea for doing the sieve: 
+	Do most of the stuff on the client, such as keeping a list of primes and doing odd number steps (primes 2, 7, etc.), 
+	while the Server does even number steps (3, 11, etc.) and sends back newest prime found and current list
+
+Still working on figuring out how the sieve will really work...
+
+
+--MEETING ENDED--
+
+
+10/16: Added some comments to Client.cpp and ran valgrind successfully. Nothing else today.
+
+
+10/21:
+
+--MEETING START--
+
+~Partner implemented connection between two different machines. *Client side needs a number to know what "thing" to connect to. 
+	Ex: ./main Client 4 uses server readied in Thing 4
+
+Created method to close the socket in the main rather than at the end of client setup, before sieve work would be done.
+
+Some brainstorming follows.
+
+
+Doing the Sieve without threads:
+
+Client step 1:
+
+-Setup sieve, including saving 2 as prime in some list.
+-Mark multiples of 2 as non-prime.
+-Save the first number after 2 not marked as non-prime (3) as prime.
+-Send data set starting at closest proceeding prime (3) to Server.
+
+Server step 1+ ("+" means this step is repeated):
+
+-Take in list of primes. First time starts at 3.
+-Cross off multiples of first prime recieved.
+-Send data back to Client starting with closest prime (5 the first time).
+
+Client step 2+:
+
+-Save first number in the list sent back by the Server (5 the first time) as prime.
+-Do the same thing the server just did, except save the second non-prime number the list as non-prime (such as 7).
+
+Last step:
+
+If the square of the start of the list recieved is greater than the length of the list, we're done. That means...
+
+IN CLIENT:
+-The number at the start of this list is already saved in the list of primes held in here, so simply give the list of primes to the main (or whatever outputs the list).
+
+IN SERVER:
+-Since the other numbers don't matter, we can just send back this one prime number. Do the IN CLIENT step above after.
+
+
+
+
+Doing the sieve with threads:
+
+Thread psudocode (worth double checking for correctness):
+
+POSSIBLE PROBLEMS (both solved, but we may want only 2 threads at once):
+1. The square of the current prime isn't the last prime to be found, or else we might stop at 11 when we want other primes between 2 and 100.
+2. I'm sure that primes are found in threads after the thread containing the prime above the squareroot of the end of the list is started.
+	But if we're not making new threads, how do we tell if numbers after that point prime?
+
+Start with whole list in Client. Make a thread in Client.
+
+A:  Thread gets data, including at least part of the list and the length of the original list.
+
+B:  if(we did not recieve the full list AND the dataset we have is too small to include multiples of the first number in the list)
+	{Wait for enough data to be sent so we have enough data to do something. Keep checking each time we get data, and be ready to skip to "step E" if needed}
+
+    else if(we did in fact recieve the whole list, which we can check by seeing if the square of the first number in this list is above the original list's length)
+
+	{simply wait for the rest of the threads to be done sending data. this is "step F"}
+
+   else {go to step C}
+
+C:  cross off multiples of the first number in the list.
+
+D:  If(there is at least one number number not crossed off before the number that was just crossed off){
+
+	if (we didn't start a new thread yet)
+		{start a new thread with the first number we found as not crossed off}
+
+	Send number(s) not crossed off that are before the one we just crossed off to the next thread. mark that we shouldn't start another thread after starting a thread here}
+
+E:  if(we didn't check numbers up to the end of the original list length)
+	{go back to "step B"}
+
+    else if(we've gone through the whole list and we can verify that we have the whole list)
+
+	{go in a state where we're ready to join with the other threads}
+
+F: if(all threads are done running and this is the last thread made)
+	{join threads by taking the first number in the previous thread and put it at the start of the list. Keep doing this until there are no more threads}
+
+	//it's as simple as that because if numbers aren't marked as prime by the time they get sent all the way to the last thread, they're prime
+
+G: With all threads joined, send data back to main, outputting the list of prime numbers.
+
+
+Full example for Point of Interest TWO: list primes from 2 to 20
+
+thread 2 doesn't mark: 3 5 7 9 11 13 15 17 19
+thread 3 doesn't mark: 5 7 11 13 17 19
+thread 5 doesn't mark: 7 11 13 17 19
+thread 7 doesn't mark: 11 13 17 19
+thread 11 doesn't mark: 13 17 19
+
+thread 11 recived 17 and 19 by the time thread 7 is done looking through data. likewise with 7 getting data from 5, 5 getting data from 3, etc.
+
+So: 
+thread 11 has 11, 13, 17, 19. all those are prime (add 13, 11, 17, 19)
+thread 7 has 7, 11, 13, 17, 19. We stop at 11 since thread 11 has that number (add 7)
+thread 5 has 5, 7, 11, 13, 17, 19. Stop at 7, add 5.
+thread 3 has 3 and everything 5 has. (add 3)
+thread 2 has 2 and everything 3 has. (add 2)
+
+We end up with 2, 3, 5, 7, 11, 13, 17, 19 being prime.
