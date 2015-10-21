@@ -44,7 +44,7 @@ int Client::setup() {
   char buf[MAXDATASIZE];			//used for message output
 
   memset(&hints, 0, sizeof hints);  // empty the struct
-  hints.ai_family = AF_INET;        // use IPv4
+  hints.ai_family = AF_UNSPEC;      // use IPv4 or IPv6
   hints.ai_socktype = SOCK_STREAM;  // TCP stream sockets
 
   // Prepare to connect

@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     return 1;
   }
   // Use port 9382 for consistency
-  const char *port = "9382";
+  const char *port = "9383";
 
   // Attempt to connect to server if client
   if (cli_or_serv.compare("client") == 0) {
@@ -44,11 +44,14 @@ int main(int argc, char** argv) {
     }
 
     // Prepare the thing hostname
-    stringstream ss;
-    ss << "thing-0" << thing << ".cs.uwec.edu";
-    cout << "thing string: " << ss.str() << endl;
+    stringstream host;
+    host << "thing-0" << thing << ".cs.uwec.edu";
+    cout << "thing string: " << host.str() << endl;
 
-    Client *client = new Client("thing-04.cs.uwec.edu", "9382"); 
+    char *host_c = strdup(host.str().c_str());
+
+    //Client *client = new Client(host.str().c_str(), port); 
+    Client *client = new Client(host_c, port);
 
     cout << "host: " << (*client).getHost() << endl;
     cout << "port: " << (*client).getPort() << endl;
