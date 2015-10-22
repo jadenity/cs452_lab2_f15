@@ -44,15 +44,18 @@ int main(int argc, char** argv) {
     }
 
     // Prepare the thing hostname
-    stringstream host;
-    host << "thing-0" << thing << ".cs.uwec.edu";
-    cout << "thing string: " << host.str() << endl;
+    const char *begin = "thing-0";
+    const char *end = ".cs.uwec.edu";
+    char *host;
+    host = (char *)malloc(strlen(begin)+strlen(end)+2);
+    strcpy(host, begin);
+    strcat(host, argv[2]);
+    strcat(host, end);
 
     // Make the const char * out of the concatenated host string
-    const char *host_c = (host.str()).c_str();
+    //const char *host_c = (host.str()).c_str();
+    Client *client = new Client(host, port);
 
-    //Client *client = new Client(host.str().c_str(), port); 
-    Client *client = new Client(host_c, port);
 
     cout << "host: " << (*client).getHost() << endl;
     cout << "port: " << (*client).getPort() << endl;
@@ -104,6 +107,7 @@ int main(int argc, char** argv) {
 
     delete[] list;
     delete client;
+    free(host);
   }
 
 

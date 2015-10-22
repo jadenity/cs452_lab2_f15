@@ -56,6 +56,18 @@ int Client::setup() {
   }
 
   // loop until you find the first socket to connect to
+  /* Attempting to eliminate continue/break statements...
+  p = servinfo;
+  while (p != NULkjjjL) {
+    sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+    if (sockfd == -1) {
+      perror("error in client: socket");
+    }
+    p->ai_next;
+  }
+  */
+
+  
   for (p = servinfo; p != NULL; p = p->ai_next) {
     if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) { //attempt socket creation
       perror("error in client: socket");
@@ -77,6 +89,8 @@ int Client::setup() {
     return 2;
   }
 
+  // inet_ntop converts the IP address into a human-readable form
+  // (network to presentation)
   inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
                   s, sizeof s);
   printf("client: connecting to %s\n", s);
@@ -115,3 +129,4 @@ const char *Client::getHost() {
 const char *Client::getPort() {
   return port;
 }
+
