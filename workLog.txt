@@ -150,47 +150,58 @@ Thread psudocode (worth double checking for correctness):
 
 POSSIBLE PROBLEMS (both solved, but we may want only 2 threads at once):
 1. The square of the current prime isn't the last prime to be found, or else we might stop at 11 when we want other primes between 2 and 100.
-2. I'm sure that primes are found in threads after the thread containing the prime above the squareroot of the end of the list is started.
-	But if we're not making new threads, how do we tell if numbers after that point prime?
+	I'm sure that primes are found in threads after the thread containing the prime above the squareroot of the end of the list is started.
+	But if we're not making new threads, how do we tell if numbers after that point prime? 
+*SOLVED: since threads send data to the next thread every time, those primes are in the last thread at the end.
 
-Start with whole list in Client. Make a thread in Client.
+2. What if the lower bound entered by the user is greater than 2? Will we skip checking 2?
 
-A:  Thread gets data, including at least part of the list and the length of the original list.
+Start with the whole list with range defined by the user in Client. Make a thread in Client.
 
-B:  if(we did not recieve the full list AND the dataset we have is too small to include multiples of the first number in the list)
-	{Wait for enough data to be sent so we have enough data to do something. Keep checking each time we get data, and be ready to skip to "step E" if needed}
+A:  Thread gets data, including at least part of the list and the largest number in the original list 
+	(that's for use in conditionals only (a variable any thread can look up any time is probably better... Perhaps a global one)).
 
-    else if(we did in fact recieve the whole list, which we can check by seeing if the square of the first number in this list is above the original list's length)
+**Sould probably wait until the previous thread is done sending data. 
+Otherwise, we'd have to prepate additional sockets to prevent sending data both ways at once on a single socket, which may cause issues.
 
-	{simply wait for the rest of the threads to be done sending data. this is "step F"}
+B:  if(the first number is less than or equal to the last number in the original list AND the current dataset doesn't include a multiple of the first number not yet marked as non-prime)
+	{Wait for a number equal to the square of this thread's first number to be recieved. 
+		Keep checking each time we get data and be ready to skip to "step E" in case the previous thread is done with it's full dataset}
+	//**the above is only for running threads concurrently, which would probably be fast, but could be dangerous to try with only one socket
+
+    else if(the square of the first number in this list is greater than the last number in the original list)
+	{simply wait for the rest of the threads to be done sending data. this is leads to "step F".}
 
    else {go to step C}
 
-C:  cross off multiples of the first number in the list.
+C:  cross off a multiple of the first number in the list, marking it as non-prime. Also remember what number was just crossed off for "Step D".
 
-D:  If(there is at least one number number not crossed off before the number that was just crossed off){
+D:  If(there is at least one number not crossed off less than the number that was just crossed off){
 
-	if (we didn't start a new thread yet)
-		{start a new thread with the first number we found as not crossed off}
+	if (we didn't start a new thread in this thread yet)
+		{start a new thread, the first number found as not crossed off becomes the next thread's first list value. //This number is also certainly prime.
+			If(this is the client){make the thread in the server}
+			If(this is the server){make the thread in the client}
+				set a boolean to say we've started a new thread as well. Each thread should only start one more thread}
 
-	Send number(s) not crossed off that are before the one we just crossed off to the next thread. mark that we shouldn't start another thread after starting a thread here}
+	Send number(s) not crossed off that are between the last number we crossed off (or the start of the list) and the number we just crossed off}
 
 E:  if(we didn't check numbers up to the end of the original list length)
-	{go back to "step B"}
+	{go back to "step B [concurrent threads only]". We end up in step C soon after if we already have what we need to cross off another number}
 
-    else if(we've gone through the whole list and we can verify that we have the whole list)
+    else if(we've gone through the whole list and we can verify that we have the whole list (basic else should work here))
 
 	{go in a state where we're ready to join with the other threads}
 
-F: if(all threads are done running and this is the last thread made)
+F: if(all threads are done running and this is the last thread made) //conditional may not be needed if threads don't run concurrently
 	{join threads by taking the first number in the previous thread and put it at the start of the list. Keep doing this until there are no more threads}
 
-	//it's as simple as that because if numbers aren't marked as prime by the time they get sent all the way to the last thread, they're prime
+	//it's as simple as that because if numbers aren't marked as non-prime by the time they get sent all the way to the last thread, they're prime
 
-G: With all threads joined, send data back to main, outputting the list of prime numbers.
+G: With all threads joined, send data back to Client (if we're in the server), then main to output the list of prime numbers.
 
 
-Full example for Point of Interest TWO: list primes from 2 to 20
+Proof that this pseudocode should work: list primes from 2 to 20
 
 thread 2 doesn't mark: 3 5 7 9 11 13 15 17 19
 thread 3 doesn't mark: 5 7 11 13 17 19
@@ -201,10 +212,14 @@ thread 11 doesn't mark: 13 17 19
 thread 11 recived 17 and 19 by the time thread 7 is done looking through data. likewise with 7 getting data from 5, 5 getting data from 3, etc.
 
 So: 
-thread 11 has 11, 13, 17, 19. all those are prime (add 13, 11, 17, 19)
+thread 11 has 11, 13, 17, 19. all those are prime (add 11, 13, 11, 17, 19)
 thread 7 has 7, 11, 13, 17, 19. We stop at 11 since thread 11 has that number (add 7)
 thread 5 has 5, 7, 11, 13, 17, 19. Stop at 7, add 5.
 thread 3 has 3 and everything 5 has. (add 3)
 thread 2 has 2 and everything 3 has. (add 2)
 
 We end up with 2, 3, 5, 7, 11, 13, 17, 19 being prime.
+
+The above was shown to my partner and I added it to our repository so he can review it. Will email Professor about this pseudocode.
+
+--MEETING ENDED--
