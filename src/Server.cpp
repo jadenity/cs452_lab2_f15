@@ -13,6 +13,9 @@
 #include <signal.h>
 #include <iostream>
 
+//Global Variables
+int new_fd;
+
 using namespace std;
 
 #define BACKLOG 10 // # of pending connections in the queue
@@ -33,18 +36,8 @@ void *Server::get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-void sigchld_handler(int s)
-{
-    // waitpid() might overwrite errno, so we save and restore it:
-    int saved_errno = errno;
-
-    while(waitpid(-1, NULL, WNOHANG) > 0);
-
-    errno = saved_errno;
-}
-
 int Server::setup() {
-  int sockfd, new_fd, status;  // listen on sock_fd, new connection on new_fd
+  int sockfd, status;  // listen on sock_fd, new connection on new_fd
   struct addrinfo hints, *servinfo, *p;
   struct sockaddr_storage their_addr; // connector's address information
   socklen_t sin_size;
@@ -62,28 +55,45 @@ int Server::setup() {
     exit(1);
   }
 
-    // loop through all the results and bind to the first we can
-  for(p = servinfo; p != NULL; p = p->ai_next) {
-      if ((sockfd = socket(p->ai_family, p->ai_socktype,
-              p->ai_protocol)) == -1) {
-          perror("server: socket");
-          continue;
-      }
-
-      if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-              sizeof(int)) == -1) {
-          perror("setsockopt");
-          exit(1);
-      }
-
-      if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-          close(sockfd);
-          perror("server: bind");
-          continue;
-      }
-
-      break;
+  p = servinfo;
+  if ((sockfd = socket(p->ai_family, p->ai_socktype,
+        p->ai_protocol)) == -1) {
+    perror("server: socket");
   }
+
+  if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+          sizeof(int)) == -1) {
+      perror("setsockopt");
+      exit(1);
+  }
+
+  if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+      close(sockfd);
+      perror("server: bind");
+  }
+
+  // loop through all the results and bind to the first we can
+  // for (p = servinfo; p != NULL; p = p->ai_next) {
+  //     if ((sockfd = socket(p->ai_family, p->ai_socktype,
+  //             p->ai_protocol)) == -1) {
+  //         perror("server: socket");
+  //         continue;
+  //     }
+
+  //     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+  //             sizeof(int)) == -1) {
+  //         perror("setsockopt");
+  //         exit(1);
+  //     }
+
+  //     if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+  //         close(sockfd);
+  //         perror("server: bind");
+  //         continue;
+  //     }
+
+  //     break;
+  // }
 
   freeaddrinfo(servinfo);
 
@@ -97,38 +107,33 @@ int Server::setup() {
       exit(1);
   }
 
-  sa.sa_handler = sigchld_handler; // reap all dead processes
-  sigemptyset(&sa.sa_mask);
-  sa.sa_flags = SA_RESTART;
-  if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-      perror("sigaction");
-      exit(1);
-  }
 
   printf("server: waiting for connections...\n");
 
-  // while(1) {  // main accept() loop
-      sin_size = sizeof their_addr;
-      new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-      if (new_fd == -1) {
-          perror("accept");
-      }
+  sin_size = sizeof their_addr;
+  new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+  if (new_fd == -1) {
+      perror("accept");
+  }
 
-      inet_ntop(their_addr.ss_family,
-          get_in_addr((struct sockaddr *)&their_addr),
-          s, sizeof s);
-      printf("server: got connection from %s\n", s);
+  // inet_ntop converts the IP address into a human-readable form
+  // (network to presentation)
+  inet_ntop(their_addr.ss_family,
+      get_in_addr((struct sockaddr *)&their_addr),
+      s, sizeof s);
+  printf("server: got connection from %s\n", s);
 
-      // Want to use threads instead of forking child processes...
+  // Want to use threads instead of forking child processes...
 
-      // Separate communication out once connection is established.
-      comm(sockfd, new_fd);
+  // Separate communication out once connection is established.
+  comm(new_fd);
 
+  close(sockfd); 
   return 0;
 }
 
 //mostly for testing sending data between server and client
-void Server::comm(int sockfd, int new_fd) {
+void Server::comm(int new_fd) {
   int numbytes;
   int buf[MAXDATASIZE];
   int nums[6] = {5, 1, 2, 3, 4, 5}; //first value is list length, the rest are the actual numbers in the list
@@ -169,10 +174,13 @@ void Server::comm(int sockfd, int new_fd) {
 
   // Make sure to close file descriptors when finished with them.
   close(new_fd);
-  close(sockfd); 
 }
 
 const char *Server::getPort() {
   return port;
+}
+
+void Server::closeSocket() {
+  close(new_fd);
 }
                                                               

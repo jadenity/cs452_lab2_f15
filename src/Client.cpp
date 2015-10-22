@@ -58,7 +58,7 @@ int Client::setup() {
   // loop until you find the first socket to connect to
   /* Attempting to eliminate continue/break statements...
   p = servinfo;
-  while (p != NULkjjjL) {
+  while (p != NULL) {
     sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
     if (sockfd == -1) {
       perror("error in client: socket");
@@ -107,8 +107,6 @@ int Client::setup() {
     exit(1);
   }
 
-  //buf[numbytes] = '\0';
-
   printf("client: received");
 
   int j = 0;
@@ -129,23 +127,14 @@ int Client::setup() {
 
   printf("\n");
 
-for(int i = 0; i < j+1; i++){
-printf(" %d", nums[i]);
-}
-printf("\n");
+  for(int i = 0; i < j+1; i++){
+    printf(" %d", nums[i]);
+  }
+  printf("\n");
 
   //send numbers to server (let's send odd numbers back)
   if (send(sockfd, nums, sizeof(int)*(nums[0]+1), 0) == -1)
     perror("send");
-
-
-  // cout << "Client sleeping..." << endl; //TESTING: make sure the the connection continues after recieving a message from the server
-
-  // sleep(10);
-
-  
-
-  //close(sockfd); //closes socket connection. Seems to end the server as well (moved to method to be called by main).
 
   return 0;
 }
@@ -154,7 +143,7 @@ printf("\n");
   return primes;
 }*/
 
-void *Client::closeSocket(){
+void Client::closeSocket(){
   close(sockfd);
 }
 
