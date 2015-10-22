@@ -158,42 +158,32 @@ POSSIBLE PROBLEMS (both solved, but we may want only 2 threads at once):
 
 Start with the whole list with range defined by the user in Client. Make a thread in Client.
 
-A:  Thread gets data, including at least part of the list and the largest number in the original list 
-	(that's for use in conditionals only (a variable any thread can look up any time is probably better... Perhaps a global one)).
+A:  Thread gets data, including the whole list and the largest number in the original list. Wait until the entire list is sent.
 
-**Sould probably wait until the previous thread is done sending data. 
-Otherwise, we may have to prepare additional sockets to prevent sending data both ways at once on a single socket, which may cause issues.
+B:  if(the square of the first number in this list is greater than the last number in the original list)
+	{simply wait for the rest of the threads to be done sending data. this leads to "step F".}
 
-B:  if(the first number is less than or equal to the last number in the original list AND the current dataset doesn't include a multiple of the first number not yet marked as non-prime)
-	{Wait for a number equal to the square of this thread's first number to be recieved. 
-		Keep checking each time we get data and be ready to skip to "step E" in case the previous thread is done with it's full dataset}
-	//**the above is only for running threads concurrently, which would probably be fast, but could be dangerous to try with only one socket
+    else {go to step C}
 
-    else if(the square of the first number in this list is greater than the last number in the original list)
-	{simply wait for the rest of the threads to be done sending data. this is leads to "step F".}
+C:  cross off all multiples of the first number in the list, marking them as non-prime.
 
-   else {go to step C}
-
-C:  cross off a multiple of the first number in the list, marking it as non-prime. Also remember what number was just crossed off for "Step D".
-
-D:  If(there is at least one number not crossed off less than the number that was just crossed off){
-
-	if (we didn't start a new thread in this thread yet)
-		{start a new thread, the first number found as not crossed off becomes the next thread's first list value. //This number is also certainly prime.
-			If(this is the client){make the thread in the server}
-			If(this is the server){make the thread in the client}
-				set a boolean to say we've started a new thread as well. Each thread should only start one more thread}
+D:  Go through the numbers, looking for ones not yet crossed off.
+	
+	//This part is upposedly optional, at least the threading
+	Start a new thread. the first number found as not crossed off becomes the next thread's first list value. //This fisrt number is certainly prime.
+		If(this is the client){make the thread in the server}
+		If(this is the server){make the thread in the client}
+			set a boolean to say we've started a new thread as well. Each thread should only start one more thread
 
 	Send number(s) not crossed off that are between the last number we crossed off (or the start of the list) and the number we just crossed off}
 
-E:  if(we didn't check numbers up to the end of the original list length)
-	{go back to "step B [concurrent threads only]". We end up in step C soon after if we already have what we need to cross off another number}
-
-    else if(we've gone through the whole list and we can verify that we have the whole list (basic else should work here))
+//This may not be an actual step anymore
+E:  if(we've gone through the whole list and we can verify that we have the whole list (basic else should work here))
 
 	{go in a state where we're ready to join with the other threads}
 
-F: if(all threads are done running and this is the last thread made) //conditional may not be needed if threads don't run concurrently
+
+F: if(this is the last thread and it's done running)
 	{join threads by taking the first number in the previous thread and put it at the start of the list. Keep doing this until there are no more threads}
 
 	//it's as simple as that because if numbers aren't marked as non-prime by the time they get sent all the way to the last thread, they're prime
