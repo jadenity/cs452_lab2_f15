@@ -73,6 +73,7 @@ int Client::setup() {
 
   if (p == NULL) { //connection failure
     fprintf(stderr, "client: failed to connect\n");
+    freeaddrinfo(servinfo);
     return 2;
   }
 
