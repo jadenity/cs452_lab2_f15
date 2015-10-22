@@ -127,16 +127,26 @@ int Server::setup() {
   return 0;
 }
 
+//mostly for testing sending data between server and client
 void Server::comm(int sockfd, int new_fd) {
   int numbytes;
-  char buf[MAXDATASIZE];
+  int buf[MAXDATASIZE];
+  int nums[6] = {5, 1, 2, 3, 4, 5}; //first value is list length, the rest are the actual numbers in the list
 
-  cout << "Sending \"Hello, world!\" to client..." << endl;
+  cout << "Sending";
 
-  if (send(new_fd, "Hello, world!", 13, 0) == -1)
+  for(int i = 0; i < (sizeof (nums))/(sizeof (nums[0])); i++){
+    cout << " " <<nums[i];
+  }
+
+  cout << "..." << endl;
+
+  if (send(new_fd, nums, sizeof(int)*6, 0) == -1)
     perror("send");
 
   cout << "Waiting to receive..." << endl;
+
+  //the above sends data to the client. The following recieves data from the client.
 
   while (1) {
 
@@ -148,6 +158,12 @@ void Server::comm(int sockfd, int new_fd) {
     if (numbytes == 0) {
       cout << "Client has closed connection." << endl;
       break;
+    } else { //recieved something from client
+      printf("recieved:");
+      for(int i = 1; i < (buf[0]+1); i++){
+        printf(" %d", buf[i]);
+      }
+      printf("\n");
     }
   }
 

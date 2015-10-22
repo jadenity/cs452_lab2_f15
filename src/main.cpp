@@ -56,11 +56,10 @@ int main(int argc, char** argv) {
     //const char *host_c = (host.str()).c_str();
     Client *client = new Client(host, port);
 
-
     cout << "host: " << (*client).getHost() << endl;
     cout << "port: " << (*client).getPort() << endl;
 
-    (*client).setup();
+    (*client).setup(); //create client and connection between client and server
 
     // Take input for the lower limit of the sieve.
     int lower;

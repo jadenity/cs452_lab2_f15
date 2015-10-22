@@ -40,10 +40,10 @@ void *Client::get_in_addr(struct sockaddr *sa) {
  * This is the bulk of the code concerning implementing sockets.
  */
 int Client::setup() {
-  int status, numbytes;			//error catching variables
-  struct addrinfo hints, *servinfo, *p;		//defined in 
-  char s[INET6_ADDRSTRLEN];			//??
-  char buf[MAXDATASIZE];			//used for message output
+  int status, numbytes;				//error catching variables
+  struct addrinfo hints, *servinfo, *p;		//defined in socket include
+  char s[INET6_ADDRSTRLEN];			//also part of an include
+  //int buf[MAXDATASIZE];				//used for message output
 
   memset(&hints, 0, sizeof hints);  // empty the struct
   hints.ai_family = AF_UNSPEC;      // use IPv4 or IPv6
@@ -98,14 +98,46 @@ int Client::setup() {
   // servinfo now points to a linked list of 1 or more struct addrinfos
   freeaddrinfo(servinfo);
 
-  if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) { //triggers if recieving too much data at once (?)
+  int buf[MAXDATASIZE];
+  int nums[6];
+
+  //recieve numbers from server
+  if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) { //triggers if recieving too much data at once
     perror("recv");
     exit(1);
   }
 
-  buf[numbytes] = '\0';
+  //buf[numbytes] = '\0';
 
-  printf("client: received '%s'\n",buf);
+  printf("client: received");
+
+  int j = 0;
+  for(int i = 1; i < buf[0]+1; i++){
+    printf(" %d", buf[i]);
+
+    if((buf[i] % 2) == 1){
+      nums[j+1] = buf[i]; //for sending numbers back
+      j++;
+      printf("!");
+    }
+
+    if(i+1 >= buf[0]+1){
+
+      nums[0] = j;
+    }
+  }
+
+  printf("\n");
+
+for(int i = 0; i < j+1; i++){
+printf(" %d", nums[i]);
+}
+printf("\n");
+
+  //send numbers to server (let's send odd numbers back)
+  if (send(sockfd, nums, sizeof(int)*(nums[0]+1), 0) == -1)
+    perror("send");
+
 
   // cout << "Client sleeping..." << endl; //TESTING: make sure the the connection continues after recieving a message from the server
 
@@ -117,6 +149,10 @@ int Client::setup() {
 
   return 0;
 }
+
+/*int *Client::clientSieve(){
+  return primes;
+}*/
 
 void *Client::closeSocket(){
   close(sockfd);
