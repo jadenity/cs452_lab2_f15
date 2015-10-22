@@ -162,7 +162,7 @@ A:  Thread gets data, including at least part of the list and the largest number
 	(that's for use in conditionals only (a variable any thread can look up any time is probably better... Perhaps a global one)).
 
 **Sould probably wait until the previous thread is done sending data. 
-Otherwise, we'd have to prepate additional sockets to prevent sending data both ways at once on a single socket, which may cause issues.
+Otherwise, we may have to prepare additional sockets to prevent sending data both ways at once on a single socket, which may cause issues.
 
 B:  if(the first number is less than or equal to the last number in the original list AND the current dataset doesn't include a multiple of the first number not yet marked as non-prime)
 	{Wait for a number equal to the square of this thread's first number to be recieved. 
