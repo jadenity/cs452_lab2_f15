@@ -48,7 +48,8 @@ int main(int argc, char** argv) {
     host << "thing-0" << thing << ".cs.uwec.edu";
     cout << "thing string: " << host.str() << endl;
 
-    char *host_c = strdup(host.str().c_str());
+    // Make the const char * out of the concatenated host string
+    const char *host_c = (host.str()).c_str();
 
     //Client *client = new Client(host.str().c_str(), port); 
     Client *client = new Client(host_c, port);
@@ -57,7 +58,6 @@ int main(int argc, char** argv) {
     cout << "port: " << (*client).getPort() << endl;
 
     (*client).setup();
-
 
     // Take input for the lower limit of the sieve.
     int lower;
@@ -120,7 +120,6 @@ int main(int argc, char** argv) {
 
     delete server;
   }
-
 
 
   return 0;
