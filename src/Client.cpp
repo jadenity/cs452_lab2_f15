@@ -55,32 +55,51 @@ int Client::setup() {
     return 1;
   }
 
-  // loop until you find the first socket to connect to
-  /* Attempting to eliminate continue/break statements...
-  p = servinfo;
-  while (p != NULL) {
-    sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-    if (sockfd == -1) {
-      perror("error in client: socket");
-    }
-    p->ai_next;
-  }
-  */
-
-  
+  /*
+ // ORIGINAL LOOP 
   for (p = servinfo; p != NULL; p = p->ai_next) {
-    if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) { //attempt socket creation
+    if ((sockfd = socket(p->ai_family, p->ai_socktype, 
+            p->ai_protocol)) == -1) { //attempt socket creation
       perror("error in client: socket");
       continue;
     }
 
-    if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) { //attempt socket connection, to server in this case
+    if (connect(sockfd, p->ai_addr,
+          p->ai_addrlen) == -1) { //attempt socket connection, to server in this case
       close(sockfd); 
       perror("error in client: connect");
       continue;
     }
 
     break;
+  }
+ // END ORIGINAL LOOP
+ */
+
+  // loop until you find the first socket to connect to
+  bool success = false;
+  p = servinfo;
+  while ((!success) && (p != NULL)) {
+
+    // Attempt to create the socket
+    if ((sockfd = socket(p->ai_family, p->ai_socktype,
+          p->ai_protocol)) == -1) { // attempt socket creation
+      perror("error in client: socket");
+      // Move to next possible socket
+      p = p->ai_next;
+    } else {
+
+      // Connect to the socket. If successful, exit loop
+      if (connect(sockfd, p->ai_addr,
+            p->ai_addrlen) == -1) { //attempt socket connection, to server in this case
+        close(sockfd); 
+        perror("error in client: connect");
+        // Move to next possible socket
+        p = p->ai_next;
+      } else {
+        success = true;
+      }
+    }
   }
 
   if (p == NULL) { //connection failure
@@ -95,7 +114,6 @@ int Client::setup() {
                   s, sizeof s);
   printf("client: connecting to %s\n", s);
 
-  // servinfo now points to a linked list of 1 or more struct addrinfos
   freeaddrinfo(servinfo);
 
   int buf[MAXDATASIZE];

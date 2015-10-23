@@ -54,24 +54,8 @@ int Server::setup() {
     fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
     exit(1);
   }
-
-  p = servinfo;
-  if ((sockfd = socket(p->ai_family, p->ai_socktype,
-        p->ai_protocol)) == -1) {
-    perror("server: socket");
-  }
-
-  if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-          sizeof(int)) == -1) {
-      perror("setsockopt");
-      exit(1);
-  }
-
-  if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-      close(sockfd);
-      perror("server: bind");
-  }
-
+ 
+  // ORIGINAL LOOP
   // loop through all the results and bind to the first we can
   // for (p = servinfo; p != NULL; p = p->ai_next) {
   //     if ((sockfd = socket(p->ai_family, p->ai_socktype,
@@ -94,7 +78,39 @@ int Server::setup() {
 
   //     break;
   // }
+  // END ORIGINAL LOOP
 
+  // loop through all the results and bind to the first we can
+  bool success = false;
+  p = servinfo;
+  while ((!success) && p != NULL) { 
+    // Attempt to create the socket
+    if ((sockfd = socket(p->ai_family, p->ai_socktype,
+            p->ai_protocol)) == -1) {
+      perror("server: socket");
+      // Move to next possible socket
+      p = p->ai_next;
+    } else {
+
+      // Set socket options
+      if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+             sizeof(int)) == -1) {
+         perror("setsockopt");
+      }
+
+      // Bind to the socket. If successful, exit loop
+      if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+        close(sockfd);
+        perror("server: bind");
+        // Move to next possible socket 
+        p = p->ai_next;
+      } else {
+        success = true;
+      }
+    }
+  }
+
+  // Use pre-existing function to free pointer to addrinfo
   freeaddrinfo(servinfo);
 
   if (p == NULL)  {
@@ -146,30 +162,32 @@ void Server::comm(int new_fd) {
 
   cout << "..." << endl;
 
-  if (send(new_fd, nums, sizeof(int)*6, 0) == -1)
+  if (send(new_fd, nums, sizeof(int)*6, 0) == -1) {
     perror("send");
+  }
 
   cout << "Waiting to receive..." << endl;
 
   //the above sends data to the client. The following recieves data from the client.
 
-  while (1) {
+  while (numbytes != 0) {
 
     if ((numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0)) == -1) {
       perror("recv");
       exit(1);
     }
 
-    if (numbytes == 0) {
-      cout << "Client has closed connection." << endl;
-      break;
-    } else { //recieved something from client
+    // received something from client
+    if (numbytes != 0) {
       printf("recieved:");
       for(int i = 1; i < (buf[0]+1); i++){
         printf(" %d", buf[i]);
       }
       printf("\n");
+    } else {
+      perror("server: client closed connection");
     }
+
   }
 
   // Make sure to close file descriptors when finished with them.
