@@ -160,8 +160,9 @@ void Client::comm() {
   printf("\n");
 
   //send numbers to server (let's send odd numbers back)
-  if (send(sockfd, nums, sizeof(int)*(nums[0]+1), 0) == -1)
+  if (send(sockfd, nums, sizeof(int)*(nums[0]+1), 0) == -1) {
     perror("send");
+  }
 
 }
 

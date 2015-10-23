@@ -113,11 +113,13 @@ int Server::setup() {
   // Use pre-existing function to free pointer to addrinfo
   freeaddrinfo(servinfo);
 
+  // If loop exited because p is null, bind failed
   if (p == NULL)  {
       fprintf(stderr, "server: failed to bind\n");
       exit(1);
   }
 
+  // Wait for connection
   if (listen(sockfd, BACKLOG) == -1) {
       perror("listen");
       exit(1);
@@ -126,6 +128,7 @@ int Server::setup() {
 
   printf("server: waiting for connections...\n");
 
+  // Accept connection (final step)
   sin_size = sizeof their_addr;
   new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
   if (new_fd == -1) {
@@ -138,8 +141,6 @@ int Server::setup() {
       get_in_addr((struct sockaddr *)&their_addr),
       s, sizeof s);
   printf("server: got connection from %s\n", s);
-
-  // Want to use threads instead of forking child processes...
 
   // Separate communication out once connection is established.
   comm();
@@ -191,8 +192,6 @@ void Server::comm() {
 
   }
 
-  // Make sure to close file descriptors when finished with them.
-  close(new_fd);
 }
 
 const char *Server::getPort() {
