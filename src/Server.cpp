@@ -102,7 +102,7 @@ int Server::setup() {
       if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
         close(sockfd);
         perror("server: bind");
-        // Move to next possible socket 
+        // Unsuccessful. Move to next possible socket 
         p = p->ai_next;
       } else {
         success = true;
@@ -142,14 +142,15 @@ int Server::setup() {
   // Want to use threads instead of forking child processes...
 
   // Separate communication out once connection is established.
-  comm(new_fd);
+  comm();
 
+  // sockfd not needed anymore, make sure to close it
   close(sockfd); 
   return 0;
 }
 
 //mostly for testing sending data between server and client
-void Server::comm(int new_fd) {
+void Server::comm() {
   int numbytes;
   int buf[MAXDATASIZE];
   int nums[6] = {5, 1, 2, 3, 4, 5}; //first value is list length, the rest are the actual numbers in the list

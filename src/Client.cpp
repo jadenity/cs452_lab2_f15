@@ -40,10 +40,9 @@ void *Client::get_in_addr(struct sockaddr *sa) {
  * This is the bulk of the code concerning implementing sockets.
  */
 int Client::setup() {
-  int status, numbytes;				//error catching variables
+  int status;				//error catching variables
   struct addrinfo hints, *servinfo, *p;		//defined in socket include
   char s[INET6_ADDRSTRLEN];			//also part of an include
-  //int buf[MAXDATASIZE];				//used for message output
 
   memset(&hints, 0, sizeof hints);  // empty the struct
   hints.ai_family = AF_UNSPEC;      // use IPv4 or IPv6
@@ -94,7 +93,7 @@ int Client::setup() {
             p->ai_addrlen) == -1) { //attempt socket connection, to server in this case
         close(sockfd); 
         perror("error in client: connect");
-        // Move to next possible socket
+        // Unsuccessful. Move to next possible socket
         p = p->ai_next;
       } else {
         success = true;
@@ -116,11 +115,21 @@ int Client::setup() {
 
   freeaddrinfo(servinfo);
 
+  // Connection complete. Begin communication.
+
+  comm();
+
+  return 0;
+}
+
+void Client::comm() {
+  int numbytes;
   int buf[MAXDATASIZE];
   int nums[6];
 
   //recieve numbers from server
-  if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) { //triggers if recieving too much data at once
+  if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) { 
+    //triggers if recieving too much data at once
     perror("recv");
     exit(1);
   }
@@ -154,7 +163,6 @@ int Client::setup() {
   if (send(sockfd, nums, sizeof(int)*(nums[0]+1), 0) == -1)
     perror("send");
 
-  return 0;
 }
 
 /*int *Client::clientSieve(){

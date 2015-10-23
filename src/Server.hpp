@@ -12,8 +12,8 @@ class Server {
     const char *getPort();
     int setup();
     void *get_in_addr(struct sockaddr *sa);
-    void comm(int new_fd);
     void closeSocket();
+    void comm();
   
 };
 

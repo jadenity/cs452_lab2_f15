@@ -15,6 +15,7 @@ class Client {
     void closeSocket();
     int setup();
     void *get_in_addr(struct sockaddr *sa);
+    void comm();
 
 };
 
