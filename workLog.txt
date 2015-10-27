@@ -213,3 +213,49 @@ We end up with 2, 3, 5, 7, 11, 13, 17, 19 being prime.
 The above was shown to my partner and I added it to our repository so he can review it. Will email Professor about this pseudocode.
 
 --MEETING ENDED--
+
+
+10/22:
+
+**Changed test code in Server's "Server::comm" class to be able to send a list of numbers to Client and recieve a different list of numbers from Client.
+	Having the zeroth variable be the actual length of the list instead of having only list numbers in the list feels strange, 
+		but we made it work, and it doesn't involve an extra "send" just for that bit of info.
+
+10/27:
+
+~Partner went through code last Friday, removing undesireable code such as "break" and "continue".
+
+Between going to our class, we met for a moment and he gave me a page of notes.
+
+The situation is, now that we have a way to send a number list between machines and change the list while doing so, we need the machines to do the sieve.
+
+Notes: The list bounds are hardcoded. May want to switch back to user input, though that's mostly optional.
+	Also, the Sieve isn't done at all, it just outputs a list from 2 to 25.
+	We're not using sieve.cpp anymore. Maybe we should remove it since we may not need it?
+	Another thing: "client.ccp" isn't "Client.ccp" (notice c vs C). Why is that?
+		Fixed the typo. The typo was causing errors due to the make file missing "client.ccp" because it looks for "Client.ccp".
+
+[[Still working on the following]]
+
+
+So, after creating the list:
+
+Client::sieve(int socket, int listMax){
+	
+}
+
+
+
+
+
+
+1. Start by sending the list to Client, including the upper bounds of the list (which is now defined much earlier in the code).
+
+2. Have Client remove multiples of the current prime in the list (first one is 2). Save the prime number in a "list of primes" array.
+
+3. Send numbers to the server. This includes: Numbers not included in the list, an "end of list" number that shows the recieve code in Server that it got the whole list, 
+	and maybe we should send one more number, one that says what the next prime number to work with is.
+
+4. In the Server, recieve numbers from Client until we get the "end of list" number, or the number after the "end of list" number.
+
+5. Do the next step in the sieve in Server. The idea with another number coming after the "end of list" variable is so we know what number to work with

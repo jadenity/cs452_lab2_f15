@@ -12,6 +12,12 @@ using namespace std;
 
 int main(int argc, char** argv) {
 
+  //Starting Variables
+  const char *port = "9383"; // Stick to using port 9382 for consistency (as opposed to letting the user pick).
+  int upper = 25; //hardcoded list bounds. Defined up here, both Server and Client knows list bounds
+
+  //Note: Can probably set "upper" through user input later
+
   // Validate # of arguments
   if (argc < 2) {
     cout << "Missing client/server argument." << endl;
@@ -27,9 +33,9 @@ int main(int argc, char** argv) {
   }
 
   // Use port 9382 for consistency
-  const char *port = "9383";
+  //const char *port = "9383"; //moved up to the start
 
-  // Attempt to connect to server if client
+  // Attempt to connect to server if *CLIENT*
   if (cli_or_serv.compare("client") == 0) {
 
     // Make sure thing# is entered
@@ -63,21 +69,27 @@ int main(int argc, char** argv) {
 
     int client_sock = client.setup(); //create client and connection between client and server
 
-     client.comm(client_sock);
+    client.comm(client_sock, upper); //Mostly contained test code at this point
 
-    int upper = 25;
+    //int upper = 25;	//****Hardcoded list bounds. Moved up so both Client and Server know list bounds
     int startList[upper];
 
     for (int i = 0; i < upper-1; i++) { // end 1 early because starting at 2
       startList[i] = i+2; // always start at 2
     }
 
+    //outputs the original list. Not really useful
     cout << "startList: ";
 
     for (int i = 0; i < upper-1; i++) {
       cout << startList[i] << " ";
     }
     cout << endl;
+
+    //
+
+//The following takes in user input. It's commented out because we're currently hardcoding list bounds.
+//That means we always start at 2 and always end at "upper", defined above.
 
 //    // Take input for the lower limit of the sieve.
 //    int lower;
@@ -127,7 +139,7 @@ int main(int argc, char** argv) {
   }
 
 
-  // Connect to client if server
+  // Connect to client if *SERVER*
   if (cli_or_serv.compare("server") == 0) {
 
     Server server(port);

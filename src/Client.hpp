@@ -14,7 +14,7 @@ class Client {
     const char *getPort();
     int setup();
     void *get_in_addr(struct sockaddr *sa);
-    void comm(int sockfd);
+    void comm(int sockfd, int listMax);
 
 };
 

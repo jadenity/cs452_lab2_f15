@@ -122,7 +122,8 @@ int Client::setup() {
   return sockfd;
 }
 
-void Client::comm(int sockfd) {
+//we need this to actually do the sieve, not just do a thing and that's it.
+void Client::comm(int sockfd, int listMax) {
   int numbytes;
   int buf[MAXDATASIZE];
   int nums[6];
@@ -165,10 +166,6 @@ void Client::comm(int sockfd) {
   }
 
 }
-
-/*int *Client::clientSieve(){
-  return primes;
-}*/
 
 const char *Client::getHost() {
   return host;
