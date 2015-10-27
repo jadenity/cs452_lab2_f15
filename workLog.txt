@@ -235,27 +235,118 @@ Notes: The list bounds are hardcoded. May want to switch back to user input, tho
 	Another thing: "client.ccp" isn't "Client.ccp" (notice c vs C). Why is that?
 		Fixed the typo. The typo was causing errors due to the make file missing "client.ccp" because it looks for "Client.ccp".
 
-[[Still working on the following]]
+
+
+
+***Client/Server sieve pseudocode:
 
 
 So, after creating the list:
 
-Client::sieve(int socket, int listMax){
+int[] Client::sieve(int socket, int listMax){
+
+	//PREPARATION
+	int[] list = new int[listMax + 1];	//used to create sieveList
+	int[] sieveList = new int[listMax + 1]; //holds all numbers in list[] that aren't multiples of the first list number in the list, plus 2 helper variables. Starts out empty
+	int[] masterList;			//our return value at the end of the sieve
+
+	//populate sieveList with numbers 2 through listMax starting at sieveList[1] (not 0)
+	for(int i = 2; i < listMax + 1; i++){
+		list[i - 1] = i;
+	}
+	list[0] = listMax; //the first variable in a sieveList is the size of the list (it's the next best thing we could think of next to "list.size()")
+
+	
+	int masterLength = 0;
+
+	//With a list made, start the sieve
+	while(1){
+		if(list[1] > (int)sqrt((double) upperLimit)){
+			for(int i = 1; i < sieveList[0]; i++){ //add all numbers still in sieveList to the masterList
+				masterList[masterLength] = sieveList[i];
+				masterLength++;
+			}
+			return masterList; //we're assuming sieveList has something by now, that we did at least one sieve step. may need an if statement just in case
+		} else {
+
+			//first, record the first list number in the list received to the masterList
+			masterList[masterLength] = list[1];
+			masterLength++;
+
+			//do a step of the sieve:
+			int j = 1;
+			for(int i = 2; i < list[0]; i++){ //Note: list[1] is prime. we want to check list[2] to the end.
+
+				if(list[i] % list[1] != 0){ //in other words, "if this number is not a multiple of the prime number being checked"
+					sieveList[j] = list[i];
+					j++;
+				}
+			} //end sieve step
+
+			//Add helper variables to the list
+			sieveList[0] = j - 1; //sieveList size. The minus 1 is there because j is ahead by 1
+			sieveList[j] = 0; //"end of list" variable. It belongs just past the actual list
+
+			//Also, record the first list number in the new sieveList into masterList
+			masterList[masterLength] = sieveList[1];
+			masterLength++;
+
+			//now the list is the way we want it, send it to the server
+			/*
+			code block to send data to the other machine, called Server
+			*/
+
+			//With the data sent, we'll have to wait for Server to send the data back. Then we do more.
+			/*
+			code block to recieve data from the Server. data is loaded into list[]
+			*/
+
+		} // end if/else
+	} //end sieve while loop
 	
 }
 
+Server::sieve(int socket){
 
+	//PREPARATION
+	int[] list = new int[listMax + 1];	//list recieved from Client
+	int[] sieveList = new int[listMax + 1]; //list we'll be giving back to client
 
+	//Server is a bit different. It has to wait to get some data before doing anything instead of doing something then sending data and waiting for more
+	//The while loop also starts right away because the only thing going on in here is either detection that the sieve is over or doing a sieve step
 
+	while(1){
+		/*
+		code block to recieve data from the Client. data is loaded into list[]
+		*/
 
+		if(list[1] > (int)sqrt((double) upperLimit)){ //since Server doesn't give the list back to main, we have to send it to Client
 
-1. Start by sending the list to Client, including the upper bounds of the list (which is now defined much earlier in the code).
+			/*
+			code block to send data to the other machine, called Client
+			*/
 
-2. Have Client remove multiples of the current prime in the list (first one is 2). Save the prime number in a "list of primes" array.
+		} else {
 
-3. Send numbers to the server. This includes: Numbers not included in the list, an "end of list" number that shows the recieve code in Server that it got the whole list, 
-	and maybe we should send one more number, one that says what the next prime number to work with is.
+			//do a step of the sieve (just like in Client):
+			int j = 1;
+			for(int i = 2; i < list[0]; i++){ //reminder: list[0] is where the size of the actual list is stored
 
-4. In the Server, recieve numbers from Client until we get the "end of list" number, or the number after the "end of list" number.
+				if(list[i] % list[1] != 0){
+					sieveList[j] = list[i];
+					j++;
+				}
+			} //end sieve step
 
-5. Do the next step in the sieve in Server. The idea with another number coming after the "end of list" variable is so we know what number to work with
+			//Add helper variables to the list
+			sieveList[0] = j - 1; //sieveList size
+			sieveList[j] = 0; //"end of list" variable
+
+			//now the list is the way we want it, send it to the server
+			/*
+			code block to send data to the other machine, called Client
+			*/
+
+		} // end if/else
+	}
+}
