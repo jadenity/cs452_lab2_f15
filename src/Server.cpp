@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <iostream>
+#include <cmath>
 
 //Global Variables
 // int new_fd;
@@ -194,6 +195,100 @@ void Server::comm(int sockfd) {
 
   }
 
+}
+
+int Server::sieve(int sockfd, int listMax){
+
+  //PREPARATION
+  int list[listMax + 1];  //list recieved from Client
+  int sieveList[listMax + 1]; //list we'll be giving back to client
+
+  //Server is a bit different. It has to wait to get some data before doing anything instead of doing something then sending data and waiting for more
+  //The while loop also starts right away because the only thing going on in here is either detection that the sieve is over or doing a sieve step
+  int numbytes = 1;
+  while(numbytes != 0){
+    /*
+    code block to recieve data from the Client. data is loaded into list[]
+    */
+    if ((numbytes = recv(sockfd, list, MAXDATASIZE-1, 0)) == -1) {
+      perror("Server: recv");
+      exit(1);
+    }
+
+    // received something from client
+    if (numbytes != 0) {
+      cout << "list size: " << list[0] << endl;
+      printf("received list:");
+      for(int i = 0; i < (list[0]+1); i++){
+        printf(" %d", list[i]);
+      }
+      printf("\n");
+    } else {
+      perror("server: client closed connection");
+      return 0;
+    }
+
+
+    if(list[1] > (int)sqrt((double) listMax)){ //since Server doesn't give the list back to main, we have to send it to Client
+
+      /*
+      code block to send data to the other machine, called Client
+      */
+      // int len = sizeof(int)*(list[0]+1);
+      // int totalBytes = 0;
+      // int bytesLeft = *len;
+      // int n;
+      // while(totalBytes < *len) {
+      //   n = send(sockfd, list+total, bytesLeft, 0);
+      //   if (n == -1) { break; }
+      //   total += n;
+      //   bytesLeft -= n;
+      // }
+      // *len = total;
+
+      if (send(sockfd, list, sizeof(int)*(list[0]+1), 0) == -1) {
+        perror("Server: send");
+      }
+      cout << "Reached sqrt of listMax. sending: ";
+      for (int i = 0; i <= list[0]; i++) {
+        cout << list[i] << " ";
+      }
+      cout << endl;
+
+    } else {
+
+      //do a step of the sieve (just like in Client):
+      cout << endl << "doing sieve with " << list[1] << endl;
+      int j = 1;
+      for(int i = 2; i <= list[0]; i++){ //reminder: list[0] is where the size of the actual list is stored
+
+        if(list[i] % list[1] != 0){
+          cout << "  " << list[i] << " mod " << list[1] << " != 0" << endl;
+          sieveList[j] = list[i];
+          j++;
+        }
+      } //end sieve step
+      cout << endl;
+
+      //Add helper variables to the list
+      sieveList[0] = j - 1; //sieveList size
+      // sieveList[j] = 0; //"end of list" variable
+
+      //now the list is the way we want it, send it to the server
+      /*
+      code block to send data to the other machine, called Client
+      */
+      if (send(sockfd, sieveList, sizeof(int)*(sieveList[0]+1), 0) == -1) {
+        perror("Server: send");
+      }
+      cout << "sending: ";
+      for (int i = 0; i <= sieveList[0]; i++) {
+        cout << sieveList[i] << " ";
+      }
+      cout << endl;
+
+    } // end if/else
+  }
 }
 
 const char *Server::getPort() {

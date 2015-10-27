@@ -2,6 +2,7 @@
 #define CLIENT_HPP
 
 #include <string>
+#include <vector>
 
 class Client {
       
@@ -14,7 +15,8 @@ class Client {
     const char *getPort();
     int setup();
     void *get_in_addr(struct sockaddr *sa);
-    void comm(int sockfd, int listMax);
+    int *comm(int sockfd, int listMax);
+    std::vector<int> sieve(int sockfd, int listMax);
 
 };
 

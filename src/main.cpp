@@ -69,9 +69,7 @@ int main(int argc, char** argv) {
 
     int client_sock = client.setup(); //create client and connection between client and server
 
-    client.comm(client_sock, upper); //Mostly contained test code at this point
-
-    //int upper = 25;	//****Hardcoded list bounds. Moved up so both Client and Server know list bounds
+    //int upper = 25; //****Hardcoded list bounds. Moved up so both Client and Server know list bounds
     int startList[upper];
 
     for (int i = 0; i < upper-1; i++) { // end 1 early because starting at 2
@@ -79,14 +77,25 @@ int main(int argc, char** argv) {
     }
 
     //outputs the original list. Not really useful
-    cout << "startList: ";
+    // cout << "startList: ";
 
-    for (int i = 0; i < upper-1; i++) {
-      cout << startList[i] << " ";
+    // for (int i = 0; i < upper-1; i++) {
+    //   cout << startList[i] << " ";
+    // }
+    // cout << endl;
+
+    // client.comm(client_sock, upper); //Mostly contained test code at this point
+    vector<int> masterList = client.sieve(client_sock, upper);
+    cout << "FINAL masterList: ";
+
+    for (int i = 0; i < masterList.size(); i++) {
+      cout << masterList.at(i) << " ";
     }
     cout << endl;
 
-    //
+
+
+
 
 //The following takes in user input. It's commented out because we're currently hardcoding list bounds.
 //That means we always start at 2 and always end at "upper", defined above.
@@ -148,7 +157,8 @@ int main(int argc, char** argv) {
 
     int server_sock = server.setup();
 
-    server.comm(server_sock);
+    // server.comm(server_sock);
+    server.sieve(server_sock, upper);
 
     close(server_sock);
   }
