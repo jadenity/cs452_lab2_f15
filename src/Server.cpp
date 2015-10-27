@@ -14,7 +14,7 @@
 #include <iostream>
 
 //Global Variables
-int new_fd;
+// int new_fd;
 
 using namespace std;
 
@@ -37,7 +37,7 @@ void *Server::get_in_addr(struct sockaddr *sa)
 }
 
 int Server::setup() {
-  int sockfd, status;  // listen on sock_fd, new connection on new_fd
+  int sockfd, status, new_fd;  // listen on sock_fd, new connection on new_fd
   struct addrinfo hints, *servinfo, *p;
   struct sockaddr_storage their_addr; // connector's address information
   socklen_t sin_size;
@@ -142,16 +142,17 @@ int Server::setup() {
       s, sizeof s);
   printf("server: got connection from %s\n", s);
 
-  // Separate communication out once connection is established.
-  comm();
-
   // sockfd not needed anymore, make sure to close it
   close(sockfd); 
-  return 0;
+
+  // Separate communication out once connection is established.
+  // comm();
+
+  return new_fd;
 }
 
 //mostly for testing sending data between server and client
-void Server::comm() {
+void Server::comm(int sockfd) {
   int numbytes;
   int buf[MAXDATASIZE];
   int nums[6] = {5, 1, 2, 3, 4, 5}; //first value is list length, the rest are the actual numbers in the list
@@ -164,17 +165,17 @@ void Server::comm() {
 
   cout << "..." << endl;
 
-  if (send(new_fd, nums, sizeof(int)*6, 0) == -1) {
+  if (send(sockfd, nums, sizeof(int)*6, 0) == -1) {
     perror("send");
   }
 
   cout << "Waiting to receive..." << endl;
 
   //the above sends data to the client. The following recieves data from the client.
-
+  numbytes = 1; // start numbytes > 0
   while (numbytes != 0) {
 
-    if ((numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0)) == -1) {
+    if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
       perror("recv");
       exit(1);
     }
@@ -188,6 +189,7 @@ void Server::comm() {
       printf("\n");
     } else {
       perror("server: client closed connection");
+      cout << "Client closed connection." << endl;
     }
 
   }
@@ -196,9 +198,5 @@ void Server::comm() {
 
 const char *Server::getPort() {
   return port;
-}
-
-void Server::closeSocket() {
-  close(new_fd);
 }
                                                               

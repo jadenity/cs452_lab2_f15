@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string.h>
 #include <sstream>
+#include <sys/socket.h>
 #include "sieve.hpp"
 #include "client.hpp"
 #include "server.hpp"
@@ -24,6 +25,7 @@ int main(int argc, char** argv) {
     cout << "Enter 'client' or 'server' for the 1st argument." << endl;
     return 1;
   }
+
   // Use port 9382 for consistency
   const char *port = "9383";
 
@@ -59,7 +61,23 @@ int main(int argc, char** argv) {
     cout << "host: " << client.getHost() << endl;
     cout << "port: " << client.getPort() << endl;
 
-    client.setup(); //create client and connection between client and server
+    int client_sock = client.setup(); //create client and connection between client and server
+
+     client.comm(client_sock);
+
+    int upper = 25;
+    int startList[upper];
+
+    for (int i = 0; i < upper-1; i++) { // end 1 early because starting at 2
+      startList[i] = i+2; // always start at 2
+    }
+
+    cout << "startList: ";
+
+    for (int i = 0; i < upper-1; i++) {
+      cout << startList[i] << " ";
+    }
+    cout << endl;
 
 //    // Take input for the lower limit of the sieve.
 //    int lower;
@@ -102,7 +120,7 @@ int main(int argc, char** argv) {
 //
 //    cout << endl;
 
-    client.closeSocket();
+    close(client_sock);
 
 //  delete[] list;
     free(host);
@@ -116,10 +134,11 @@ int main(int argc, char** argv) {
 
     cout << "server port: " << server.getPort() << endl;
 
+    int server_sock = server.setup();
 
-    server.setup();
+    server.comm(server_sock);
 
-    server.closeSocket();
+    close(server_sock);
   }
 
 

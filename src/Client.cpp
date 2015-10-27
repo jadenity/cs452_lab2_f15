@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 //Global Variables
-int sockfd;
+// int sockfd;
 
 //using namespace boost::asio;
 using namespace std;
@@ -40,7 +40,7 @@ void *Client::get_in_addr(struct sockaddr *sa) {
  * This is the bulk of the code concerning implementing sockets.
  */
 int Client::setup() {
-  int status;				//error catching variables
+  int status, sockfd;				//error catching variables
   struct addrinfo hints, *servinfo, *p;		//defined in socket include
   char s[INET6_ADDRSTRLEN];			//also part of an include
 
@@ -117,12 +117,12 @@ int Client::setup() {
 
   // Connection complete. Begin communication.
 
-  comm();
+  // comm();
 
-  return 0;
+  return sockfd;
 }
 
-void Client::comm() {
+void Client::comm(int sockfd) {
   int numbytes;
   int buf[MAXDATASIZE];
   int nums[6];
@@ -169,10 +169,6 @@ void Client::comm() {
 /*int *Client::clientSieve(){
   return primes;
 }*/
-
-void Client::closeSocket(){
-  close(sockfd);
-}
 
 const char *Client::getHost() {
   return host;
