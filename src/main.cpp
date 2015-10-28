@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
   //Starting Variables
   const char *port = "9384"; // Stick to using port 9382 for consistency (as opposed to letting the user pick).
   // int upper = 65482; //hardcoded list bounds. Defined up here, both Server and Client knows list bounds
-  int upper = 40000; //hardcoded list bounds. Defined up here, both Server and Client knows list bounds
+  unsigned long upper = 4000; //hardcoded list bounds. Defined up here, both Server and Client knows list bounds
 
   //Note: Can probably set "upper" through user input later
 
@@ -91,11 +91,11 @@ int main(int argc, char** argv) {
     int client_sock = client.setup(); //create client and connection between client and server
 
     //int upper = 25; //****Hardcoded list bounds. Moved up so both Client and Server know list bounds
-    int startList[upper];
+    //unsigned long startList[upper]; //hm... I don't thin kthis is being used
 
-    for (int i = 0; i < upper-1; i++) { // end 1 early because starting at 2
+    /*for (int i = 0; i < upper-1; i++) { // end 1 early because starting at 2
       startList[i] = i+2; // always start at 2
-    }
+    }*/
 
     //outputs the original list. Not really useful
     // cout << "startList: ";

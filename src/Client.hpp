@@ -16,8 +16,8 @@ class Client {
     int setup();
     void *get_in_addr(struct sockaddr *sa);
     int *comm(int sockfd, int listMax);
-    std::vector<int> sieve(int sockfd, int listMax);
-    void printList(int *list);
+    std::vector<int> sieve(int sockfd, unsigned long listMax);
+    void printList(unsigned long *list);
 
 };
 

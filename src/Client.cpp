@@ -209,17 +209,19 @@ int *Client::comm(int sockfd, int listMax) {
 //   return newArray;
 // }
 
-vector<int> Client::sieve(int sockfd, int listMax) {
+vector<int> Client::sieve(int sockfd, unsigned long listMax) {
 
   //PREPARATION
-  int list[listMax + 1];  //used to create sieveList
-  int sieveList[listMax + 1]; //holds all numbers in list[] that aren't multiples of the 
+  unsigned long list[listMax + 1];  //used to create sieveList
+  unsigned long sieveList[listMax + 1]; //holds all numbers in list[] that aren't multiples of the 
                                           //first list number in the list, plus 2 helper variables. 
                                           //Starts out empty
   vector<int> masterList; //our return value at the end of the sieve
+			  //decided to use a vector for it's Arraylist-like properties
+			  //I don't think it'll cause data sending issues, but it may be slow...
 
   //populate sieveList with numbers 2 through listMax starting at sieveList[1] (not 0)
-  for(int i = 2; i < listMax + 1; i++){
+  for(unsigned long i = 2; i < listMax + 1; i++){
     list[i - 1] = i;
   }
   list[0] = listMax; //the first variable in a sieveList is the size of the list 
@@ -227,8 +229,8 @@ vector<int> Client::sieve(int sockfd, int listMax) {
 
   //With a list made, start the sieve
   while(1){
-    if(list[1] > (int)sqrt((double) listMax)){
-      for(int i = 2; i < sieveList[0]+1; i++){ //add all numbers still in sieveList to the masterList
+    if(list[1] > (unsigned long)sqrt((double) listMax)){
+      for(unsigned long i = 2; i < sieveList[0]+1; i++){ //add all numbers still in sieveList to the masterList
         // masterList[masterLength] = sieveList[i];
         // masterLength++;
         masterList.push_back(sieveList[i]);
@@ -249,8 +251,8 @@ vector<int> Client::sieve(int sockfd, int listMax) {
 
       //do a step of the sieve:
       // cout << endl << "doing sieve with " << list[1] << endl;
-      int j = 1;
-      for(int i = 2; i <= list[0]; i++){ //Note: list[1] is prime. we want to check list[2] to the end.
+      unsigned long j = 1;
+      for(unsigned long i = 2; i <= list[0]; i++){ //Note: list[1] is prime. we want to check list[2] to the end.
 
         if(list[i] % list[1] != 0){ //in other words, "if this number is not a multiple of the 
                                     //prime number being checked"
@@ -273,7 +275,7 @@ vector<int> Client::sieve(int sockfd, int listMax) {
       /*
       code block to send data to the other machine, called Server
       */
-      if (send(sockfd, sieveList, sizeof(int)*(sieveList[0]+1), 0) == -1) {
+      if (send(sockfd, sieveList, sizeof(unsigned long)*(sieveList[0]+1), 0) == -1) {
         perror("Client: send");
       }
       cout << "Sent: ";
@@ -289,9 +291,11 @@ vector<int> Client::sieve(int sockfd, int listMax) {
       /*
       code block to recieve data from the Server. data is loaded into list[]
       */
-      int numbytes;
-      int dataSize;
-      if ((numbytes = recv(sockfd, (char *)&dataSize, sizeof(int), 0)) == -1) { 
+      int numbytes; //why is there another one of these down here? does it clear
+      unsigned long dataSize;
+
+      //Need a loop here...
+      if ((numbytes = recv(sockfd, (char *)&dataSize, sizeof(unsigned long), 0)) == -1) { 
         //triggers if recieving too much data at once
         perror("Client: recv");
         exit(1);
@@ -329,15 +333,15 @@ vector<int> Client::sieve(int sockfd, int listMax) {
 }
 
 // Assumes list[0] is length of list
-void Client::printList(int *list) {
+void Client::printList(unsigned long *list) {
   int length = list[0];
   if (list[0] <= 5) { // print whole list
-    for (int i = 1; i <= length; i++) {
+    for (unsigned long i = 1; i <= length; i++) {
       cout << list[i] << " ";
     }
     cout << endl;
   } else { // print first five + ...
-    for (int i = 1; i <= 5; i++) {
+    for (unsigned long i = 1; i <= 5; i++) {
       cout << list[i] << " ";
     }
     cout << "..." << endl;

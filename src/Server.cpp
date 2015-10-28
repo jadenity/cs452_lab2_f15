@@ -197,20 +197,22 @@ void Server::comm(int sockfd) {
 
 }
 
-int Server::sieve(int sockfd, int listMax){
+int Server::sieve(int sockfd, unsigned long listMax){
 
   //PREPARATION
-  int list[listMax + 1];  //list recieved from Client
-  int sieveList[listMax + 1]; //list we'll be giving back to client
+  unsigned long list[listMax + 1];  //list recieved from Client
+  unsigned long sieveList[listMax + 1]; //list we'll be giving back to client
 
   //Server is a bit different. It has to wait to get some data before doing anything instead of doing something then sending data and waiting for more
   //The while loop also starts right away because the only thing going on in here is either detection that the sieve is over or doing a sieve step
-  int numbytes = 1;
+  unsigned long numbytes = 1; //***why is there a 1 here?
   // while(numbytes != 0){
   while(1){
     /*
     code block to recieve data from the Client. data is loaded into list[]
     */
+
+    //Need a loop here...
     if ((numbytes = recv(sockfd, list, MAXDATASIZE-1, 0)) == -1) {
       perror("Server: recv");
       exit(1);
@@ -232,7 +234,7 @@ int Server::sieve(int sockfd, int listMax){
       return 0;
     }
 
-    int squareRootMax = (int)sqrt((double) listMax);
+    unsigned long squareRootMax = (unsigned long)sqrt((double) listMax);
     if(list[1] > squareRootMax){ //since Server doesn't give the list back to main, we have to send it to Client
 
       /*
@@ -245,13 +247,13 @@ int Server::sieve(int sockfd, int listMax){
       // }
 
       // Send size of list in bytes
-      int dataSize = htonl(sizeof(list)); // host to network byte-order
+      unsigned long dataSize = htonl(sizeof(list)); // host to network byte-order
       cout << "Sending dataSize: " << sizeof(list) << endl;
       if (send(sockfd, (const char *)&dataSize, sizeof(int), 0) == -1) {
         perror("Server: send1");
       }
       
-      if (send(sockfd, list, sizeof(int)*(list[0]+1), 0) == -1) {
+      if (send(sockfd, list, sizeof(unsigned long)*(list[0]+1), 0) == -1) {
         perror("Server: send");
       }
       cout << "Reached sqrt of listMax. Sent: ";
@@ -264,8 +266,8 @@ int Server::sieve(int sockfd, int listMax){
 
       //do a step of the sieve (just like in Client):
       // cout << endl << "doing sieve with " << list[1] << endl;
-      int j = 1;
-      for(int i = 2; i <= list[0]; i++){ //reminder: list[0] is where the size of the actual list is stored
+      unsigned long j = 1;
+      for(unsigned long i = 2; i <= list[0]; i++){ //reminder: list[0] is where the size of the actual list is stored
 
         if(list[i] % list[1] != 0){
           // cout << "  " << list[i] << " mod " << list[1] << " != 0" << endl;
@@ -290,13 +292,13 @@ int Server::sieve(int sockfd, int listMax){
       // }
 
       // Send size of list in bytes
-      int dataSize = htonl(sizeof(sieveList)); // host to network byte-order
+      unsigned long dataSize = htonl(sizeof(sieveList)); // host to network byte-order
       cout << "Sending dataSize: " << sizeof(sieveList) << endl;
       if (send(sockfd, (const char *)&dataSize, sizeof(int), 0) == -1) {
         perror("Server: send1");
       }
 
-      if (send(sockfd, sieveList, sizeof(int)*(sieveList[0]+1), 0) == -1) {
+      if (send(sockfd, sieveList, sizeof(unsigned long)*(sieveList[0]+1), 0) == -1) {
         perror("Server: send2");
       }
 
@@ -312,6 +314,9 @@ int Server::sieve(int sockfd, int listMax){
   }
 }
 
+
+//makes sure all the data is sent
+//Doesn't seem to be in use right now, but we could use something like this
 int Server::sendall(int sockfd, int *buf, int *len) {
     int total = 0;        // how many bytes we've sent
     int bytesleft = *len; // how many we have left to send
@@ -330,15 +335,15 @@ int Server::sendall(int sockfd, int *buf, int *len) {
 } 
 
 // Assumes list[0] is length of list
-void Server::printList(int *list) {
-  int length = list[0];
+void Server::printList(unsigned long *list) {
+  unsigned long length = list[0];
   if (list[0] <= 5) { // print whole list
-    for (int i = 1; i <= length; i++) {
+    for (unsigned long i = 1; i <= length; i++) {
       cout << list[i] << " ";
     }
     cout << endl;
   } else { // print first five + ...
-    for (int i = 1; i <= 5; i++) {
+    for (unsigned long i = 1; i <= 5; i++) {
       cout << list[i] << " ";
     }
     cout << "..." << endl;

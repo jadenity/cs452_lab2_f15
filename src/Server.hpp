@@ -13,9 +13,9 @@ class Server {
     int setup();
     void *get_in_addr(struct sockaddr *sa);
     void comm(int sockfd);
-    int sieve(int sockfd, int listMax);
+    int sieve(int sockfd, unsigned long listMax);
     int sendall(int sockfd, int *buf, int *len);
-    void printList(int *list);
+    void printList(unsigned long *list);
   
 };
 

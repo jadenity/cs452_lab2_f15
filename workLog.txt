@@ -1,13 +1,21 @@
 Personal notes first authored by Lucas Zutter
 
 
+*****CONTRIBUTIONS THUS FAR (useful/large ones marked by *)*****
+10/13: Discovered memory leak.
+10/15: Code refining (avoiding forks).
+10/16: Bit of documentation to the code.
+10/21: Developed threading pseudocode. unfortunately, the idea behind it went counter to the intention of the lab, so it doesn't exactly count as adding to the program.
+10/22: *Client::comm and Server::comm test code that successfully sending and recieving int arrays between Client and Server.
+10/27: *Client and Server sieve (pseudocode shown on this document around line 250).
+
 KEY:
 
 *WORD indicates something probably worthwhile (the "*" especially).
 
 "~Partner" indicates things I didn't do. Everything not starting with ~ is something I did.
 
-"--MEETING START/ENDED--" indicates that I was with my partner when these notes were made / when work was done.
+"--MEETING START/ENDED--" indicates that I was with my partner when these notes were made and/or when work was done.
 
 
 
@@ -50,7 +58,7 @@ Will also need to figure out threading.
 
 --MEETING ENDED--
 
-Nothing more done since meeting. Major oversleeping prevented any more from being done on 10/14.
+Nothing more done since meeting. Major oversleeping (about 14 hours in bed) prevented any more from being done on 10/14.
 
 10/15:
 
@@ -84,7 +92,7 @@ Actual program works, but (*client).setup() in main causes connection failure.
 Noticed partner using forks. Suggested switching to threading.
 
 Client seems to disconnect right after connecting.
-	This is due to the connection being close early, not because of a bug.
+	This is due to the connection being closed early, not because of a bug.
 
 Current idea for doing the sieve: 
 	Do most of the stuff on the client, such as keeping a list of primes and doing odd number steps (primes 2, 7, etc.), 
@@ -262,7 +270,7 @@ int[] Client::sieve(int socket, int listMax){
 	//With a list made, start the sieve
 	while(1){
 		if(list[1] > (int)sqrt((double) upperLimit)){
-			for(int i = 1; i < sieveList[0]; i++){ //add all numbers still in sieveList to the masterList
+			for(int i = 2; i < sieveList[0] + 1; i++){ //add all numbers still in sieveList to the masterList
 				masterList[masterLength] = sieveList[i];
 				masterLength++;
 			}
@@ -285,7 +293,7 @@ int[] Client::sieve(int socket, int listMax){
 
 			//Add helper variables to the list
 			sieveList[0] = j - 1; //sieveList size. The minus 1 is there because j is ahead by 1
-			sieveList[j] = 0; //"end of list" variable. It belongs just past the actual list
+			sieveList[j] = 0; //"end of list" variable. It belongs just past the actual list. May be completely optional depending on how sending/receiving data works
 
 			//Also, record the first list number in the new sieveList into masterList
 			masterList[masterLength] = sieveList[1];
@@ -306,11 +314,11 @@ int[] Client::sieve(int socket, int listMax){
 	
 }
 
-Server::sieve(int socket){
+void Server::sieve(int socket){
 
 	//PREPARATION
-	int[] list = new int[listMax + 1];	//list recieved from Client
-	int[] sieveList = new int[listMax + 1]; //list we'll be giving back to client
+	int[] list;	 //list recieved from Client
+	int[] sieveList; //list we'll be giving back to client
 
 	//Server is a bit different. It has to wait to get some data before doing anything instead of doing something then sending data and waiting for more
 	//The while loop also starts right away because the only thing going on in here is either detection that the sieve is over or doing a sieve step
@@ -348,5 +356,36 @@ Server::sieve(int socket){
 			*/
 
 		} // end if/else
-	}
+	}// while loop
 }
+
+***end Pseudocode
+
+
+--MEETING START (partner arived while I was developing pseudocode)--
+
+Showed pseudocode to partner, and he approved. Suggested a few small changes as well.
+	Partner commented out his current code to test my code [in progress].
+	He's using vectors instead of arrays in a few places though. Hopefully this doesn't slow things down a lot.
+
+CODE TESTED: Plesantly, my code works pretty good! We got a problem though: the number 23 (last prime from 2 to 25) seems to be disappearing somehow.
+	Worse, it may not be returning values properly (even though the machines are recieving data fairly well)...
+		Test code that outputs what number gets added to the masterList shows that 7 gets added twice
+			starting i at 2 fixed a few things.
+
+~Partner tweeked the code a bit. So far, the masterList is getting populated right except for the last prime number that should be in the list.
+	A couple more tweeks, and the final output is good! Though, we're getting an extra number in client. The real problem could easily be elsewhere.
+
+The servers (thing 4, thing 5, etc.) crashed, so we're stuck not doing work for now. Decided to head home at this point. Good thing we got a sieve working between 2 machines.
+
+--MEETING ENDED--
+
+
+10/28: 
+
+Partner tried sending larger sets of data. While smaller data sets run fine, sending larger data sets causes only partial data sending. 40,000 is/was the best we can do.
+Also, trying to run valgrind with large numbers seems to result in crashes. I've tried it with smaller numbers and didn't have problems though, so I'll ignore valgrind now.
+
+I switched my side of the code from int to unsigned long. I'm not sure if this is the right thing though, so I'm keeping a clone of the project that sticks with using ints.
+
+I think the real problem is in sending the data. We don't have loops or at least not using anything to make sure send() sends everything or recieve() gets everything.
