@@ -21,7 +21,7 @@ using namespace std;
 
 #define BACKLOG 10 // # of pending connections in the queue
 // Max # of bytes
-#define MAXDATASIZE 100
+#define MAXDATASIZE 1000000000000
 
 Server::Server(const char *port) {
   this->port = port;
@@ -206,7 +206,8 @@ int Server::sieve(int sockfd, int listMax){
   //Server is a bit different. It has to wait to get some data before doing anything instead of doing something then sending data and waiting for more
   //The while loop also starts right away because the only thing going on in here is either detection that the sieve is over or doing a sieve step
   int numbytes = 1;
-  while(numbytes != 0){
+  // while(numbytes != 0){
+  while(1){
     /*
     code block to recieve data from the Client. data is loaded into list[]
     */
@@ -217,58 +218,62 @@ int Server::sieve(int sockfd, int listMax){
 
     // received something from client
     if (numbytes != 0) {
-      cout << "list size: " << list[0] << endl;
-      printf("received list:");
-      for(int i = 0; i < (list[0]+1); i++){
-        printf(" %d", list[i]);
-      }
-      printf("\n");
+      // cout << "list size: " << list[0] << endl;
+      // printf("received list:");
+      // for(int i = 0; i < (list[0]+1); i++){
+      //   printf(" %d", list[i]);
+      // }
+      // printf("\n");
+      cout << "Recvd: ";
+      printList(list);
+
     } else {
       perror("server: client closed connection");
       return 0;
     }
 
-
-    if(list[1] > (int)sqrt((double) listMax)){ //since Server doesn't give the list back to main, we have to send it to Client
+    int squareRootMax = (int)sqrt((double) listMax);
+    if(list[1] > squareRootMax){ //since Server doesn't give the list back to main, we have to send it to Client
 
       /*
       code block to send data to the other machine, called Client
       */
       // int len = sizeof(int)*(list[0]+1);
-      // int totalBytes = 0;
-      // int bytesLeft = *len;
-      // int n;
-      // while(totalBytes < *len) {
-      //   n = send(sockfd, list+total, bytesLeft, 0);
-      //   if (n == -1) { break; }
-      //   total += n;
-      //   bytesLeft -= n;
+      // if (sendall(sockfd, list, &len) == -1) {
+      //   perror("Server: sendAll");
+      //   printf("We only sent %d bytes because of the error!\n", len);
       // }
-      // *len = total;
 
+      // Send size of list in bytes
+      int dataSize = htonl(sizeof(list)); // host to network byte-order
+      cout << "Sending dataSize: " << sizeof(list) << endl;
+      if (send(sockfd, (const char *)&dataSize, sizeof(int), 0) == -1) {
+        perror("Server: send1");
+      }
+      
       if (send(sockfd, list, sizeof(int)*(list[0]+1), 0) == -1) {
         perror("Server: send");
       }
-      cout << "Reached sqrt of listMax. sending: ";
-      for (int i = 0; i <= list[0]; i++) {
-        cout << list[i] << " ";
-      }
-      cout << endl;
+      cout << "Reached sqrt of listMax. Sent: ";
+      // for (int i = 0; i <= list[0]; i++) {
+      //   cout << list[i] << " ";
+      // }
+      printList(list);
 
     } else {
 
       //do a step of the sieve (just like in Client):
-      cout << endl << "doing sieve with " << list[1] << endl;
+      // cout << endl << "doing sieve with " << list[1] << endl;
       int j = 1;
       for(int i = 2; i <= list[0]; i++){ //reminder: list[0] is where the size of the actual list is stored
 
         if(list[i] % list[1] != 0){
-          cout << "  " << list[i] << " mod " << list[1] << " != 0" << endl;
+          // cout << "  " << list[i] << " mod " << list[1] << " != 0" << endl;
           sieveList[j] = list[i];
           j++;
         }
       } //end sieve step
-      cout << endl;
+      // cout << endl;
 
       //Add helper variables to the list
       sieveList[0] = j - 1; //sieveList size
@@ -278,16 +283,65 @@ int Server::sieve(int sockfd, int listMax){
       /*
       code block to send data to the other machine, called Client
       */
+      // int len = sizeof(int)*(sieveList[0]+1);
+      // if (sendall(sockfd, sieveList, &len) == -1) {
+      //   perror("Server: sendAll");
+      //   printf("We only sent %d bytes because of the error!\n", len);
+      // }
+
+      // Send size of list in bytes
+      int dataSize = htonl(sizeof(sieveList)); // host to network byte-order
+      cout << "Sending dataSize: " << sizeof(sieveList) << endl;
+      if (send(sockfd, (const char *)&dataSize, sizeof(int), 0) == -1) {
+        perror("Server: send1");
+      }
+
       if (send(sockfd, sieveList, sizeof(int)*(sieveList[0]+1), 0) == -1) {
-        perror("Server: send");
+        perror("Server: send2");
       }
-      cout << "sending: ";
-      for (int i = 0; i <= sieveList[0]; i++) {
-        cout << sieveList[i] << " ";
-      }
+
+      cout << "Sent: ";
+      // for (int i = 0; i <= sieveList[0]; i++) {
+      //   cout << sieveList[i] << " ";
+      // }
+      // cout << endl;
+      printList(sieveList);
       cout << endl;
 
     } // end if/else
+  }
+}
+
+int Server::sendall(int sockfd, int *buf, int *len) {
+    int total = 0;        // how many bytes we've sent
+    int bytesleft = *len; // how many we have left to send
+    int n;
+
+    while(total < *len) {
+        n = send(sockfd, buf+total, bytesleft, 0);
+        if (n == -1) { break; }
+        total += n;
+        bytesleft -= n;
+    }
+
+    *len = total; // return number actually sent here
+
+    return n==-1?-1:0; // return -1 on failure, 0 on success
+} 
+
+// Assumes list[0] is length of list
+void Server::printList(int *list) {
+  int length = list[0];
+  if (list[0] <= 5) { // print whole list
+    for (int i = 1; i <= length; i++) {
+      cout << list[i] << " ";
+    }
+    cout << endl;
+  } else { // print first five + ...
+    for (int i = 1; i <= 5; i++) {
+      cout << list[i] << " ";
+    }
+    cout << "..." << endl;
   }
 }
 

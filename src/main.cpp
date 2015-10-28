@@ -10,11 +10,32 @@
 
 using namespace std;
 
+
+// Assumes list[0] is the length of list
+void printMasterList(vector<int> masterList) {
+  int length = masterList.size();
+
+  if (length <= 10) { // print the whole list if less than 10
+    for (int i = 0; i < length; i++) {
+      cout << masterList[i] << " ";
+    }
+  } else { // otherwise only print the first and last 5
+    for (int i = 0; i < 5; i++) {
+      cout << masterList[i] << " ";
+    }
+    cout << "... ";
+    for (int i = length-5; i < length; i++) {
+      cout << masterList[i] << " ";
+    }
+  }
+}
+
 int main(int argc, char** argv) {
 
   //Starting Variables
-  const char *port = "9383"; // Stick to using port 9382 for consistency (as opposed to letting the user pick).
-  int upper = 25; //hardcoded list bounds. Defined up here, both Server and Client knows list bounds
+  const char *port = "9384"; // Stick to using port 9382 for consistency (as opposed to letting the user pick).
+  // int upper = 65482; //hardcoded list bounds. Defined up here, both Server and Client knows list bounds
+  int upper = 40000; //hardcoded list bounds. Defined up here, both Server and Client knows list bounds
 
   //Note: Can probably set "upper" through user input later
 
@@ -88,10 +109,13 @@ int main(int argc, char** argv) {
     vector<int> masterList = client.sieve(client_sock, upper);
     cout << "FINAL masterList: ";
 
-    for (int i = 0; i < masterList.size(); i++) {
-      cout << masterList.at(i) << " ";
-    }
+    // for (int i = 0; i < masterList.size(); i++) {
+    //   cout << masterList.at(i) << " ";
+    // }
+    // cout << endl;
+    printMasterList(masterList);
     cout << endl;
+
 
 
 
@@ -166,4 +190,5 @@ int main(int argc, char** argv) {
 
   return 0;
 }
+
 

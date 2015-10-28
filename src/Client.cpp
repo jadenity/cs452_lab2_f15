@@ -20,7 +20,7 @@
 using namespace std;
 
 // Max # of bytes
-#define MAXDATASIZE 100
+#define MAXDATASIZE 1000000000000
 
 //Constructor
 Client::Client(const char *host, const char *port) {
@@ -245,21 +245,21 @@ vector<int> Client::sieve(int sockfd, int listMax) {
 
       //first, record the first list number in the list received to the masterList
       masterList.push_back(list[1]);
-      cout << "adding " << list[1] << " to masterList" << endl;
+      // cout << "adding " << list[1] << " to masterList" << endl;
 
       //do a step of the sieve:
-      cout << endl << "doing sieve with " << list[1] << endl;
+      // cout << endl << "doing sieve with " << list[1] << endl;
       int j = 1;
       for(int i = 2; i <= list[0]; i++){ //Note: list[1] is prime. we want to check list[2] to the end.
 
         if(list[i] % list[1] != 0){ //in other words, "if this number is not a multiple of the 
                                     //prime number being checked"
-          cout << "  " << list[i] << " mod " << list[1] << " != 0" << endl;
+          // cout << "  " << list[i] << " mod " << list[1] << " != 0" << endl;
           sieveList[j] = list[i];
           j++;
         }
       } //end sieve step
-      cout << endl;
+      // cout << endl;
 
       //Add helper variables to the list
       sieveList[0] = j - 1; //sieveList size. The minus 1 is there because j is ahead by 1
@@ -267,7 +267,7 @@ vector<int> Client::sieve(int sockfd, int listMax) {
 
       //Also, record the first list number in the new sieveList into masterList
       masterList.push_back(sieveList[1]);
-      cout << "adding " << sieveList[1] << " to masterList" << endl;
+      // cout << "adding " << sieveList[1] << " to masterList" << endl;
 
       //now the list is the way we want it, send it to the server
       /*
@@ -276,11 +276,13 @@ vector<int> Client::sieve(int sockfd, int listMax) {
       if (send(sockfd, sieveList, sizeof(int)*(sieveList[0]+1), 0) == -1) {
         perror("Client: send");
       }
-      cout << "sending: ";
-      for (int i = 0; i <= sieveList[0]; i++) {
-        cout << sieveList[i] << " ";
-      }
-      cout << endl;
+      cout << "Sent: ";
+      // for (int i = 0; i <= sieveList[0]; i++) {
+      //   cout << sieveList[i] << " ";
+      // }
+      // cout << endl;
+      printList(sieveList);
+
 
 
       //With the data sent, we'll have to wait for Server to send the data back. Then we do more.
@@ -288,7 +290,19 @@ vector<int> Client::sieve(int sockfd, int listMax) {
       code block to recieve data from the Server. data is loaded into list[]
       */
       int numbytes;
-      if ((numbytes = recv(sockfd, list, MAXDATASIZE-1, 0)) == -1) { 
+      int dataSize;
+      if ((numbytes = recv(sockfd, (char *)&dataSize, sizeof(int), 0)) == -1) { 
+        //triggers if recieving too much data at once
+        perror("Client: recv");
+        exit(1);
+      }
+      dataSize = ntohl(dataSize);
+      if (numbytes != 0) {
+        cout << "RECEIVED dataSize: " << dataSize << endl;
+      }
+
+      numbytes = 0; // reset numbytes
+      if ((numbytes = recv(sockfd, list, dataSize, 0)) == -1) { 
         //triggers if recieving too much data at once
         perror("Client: recv");
         exit(1);
@@ -296,12 +310,15 @@ vector<int> Client::sieve(int sockfd, int listMax) {
 
       // received something from client
       if (numbytes != 0) {
-        cout << "list size: " << list[0] << endl;
-        printf("recieved:");
-        for(int i = 0; i < (list[0]+1); i++){
-          printf(" %d", list[i]);
-        }
-        printf("\n");
+        // cout << "list size: " << list[0] << endl;
+        printf("Recvd: ");
+        // for(int i = 0; i < (list[0]+1); i++){
+        //   printf(" %d", list[i]);
+        // }
+        // printf("\n");
+        printList(list);
+        cout << endl;
+
       } else {
         perror("client: server closed connection");
       }
@@ -309,6 +326,22 @@ vector<int> Client::sieve(int sockfd, int listMax) {
     } // end if/else
   } //end sieve while loop
 
+}
+
+// Assumes list[0] is length of list
+void Client::printList(int *list) {
+  int length = list[0];
+  if (list[0] <= 5) { // print whole list
+    for (int i = 1; i <= length; i++) {
+      cout << list[i] << " ";
+    }
+    cout << endl;
+  } else { // print first five + ...
+    for (int i = 1; i <= 5; i++) {
+      cout << list[i] << " ";
+    }
+    cout << "..." << endl;
+  }
 }
 
 const char *Client::getHost() {

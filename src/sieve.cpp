@@ -28,3 +28,4 @@ bool* sieve(const int upperLimit) {
 
   return list;
 }
+
