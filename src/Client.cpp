@@ -20,7 +20,7 @@
 using namespace std;
 
 // Max # of bytes
-#define MAXDATASIZE 1000000000000
+#define MAXDATASIZE 10000000
 
 //Constructor
 Client::Client(const char *host, const char *port) {
@@ -125,58 +125,58 @@ int Client::setup() {
 }
 
 //we need this to actually do the sieve, not just do a thing and that's it.
-int *Client::comm(int sockfd, int listMax) {
-  int numbytes;
-  int buf[MAXDATASIZE];
-  vector<int> newList;
+// int *Client::comm(int sockfd, int listMax) {
+//   int numbytes;
+//   int buf[MAXDATASIZE];
+//   vector<int> newList;
 
-  //recieve numbers from server
-  if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) { 
-    //triggers if recieving too much data at once
-    perror("recv");
-    exit(1);
-  }
+//   //recieve numbers from server
+//   if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) { 
+//     //triggers if recieving too much data at once
+//     perror("recv");
+//     exit(1);
+//   }
 
-  printf("client: received\n");
+//   printf("client: received\n");
 
-  int total = 0;
-  for(int i = 1; i < buf[0]+1; i++){
-    printf(" %d", buf[i]);
+//   int total = 0;
+//   for(int i = 1; i < buf[0]+1; i++){
+//     printf(" %d", buf[i]);
 
-    if((buf[i] % 2) == 1){
-      // nums[total+1] = buf[i]; //for sending numbers back
-      newList.push_back(buf[i]);
-      total++;
-      printf("!");
-    }
+//     if((buf[i] % 2) == 1){
+//       // nums[total+1] = buf[i]; //for sending numbers back
+//       newList.push_back(buf[i]);
+//       total++;
+//       printf("!");
+//     }
 
-    if(i+1 >= buf[0]+1){
-      // Add the total to the beginning of the new list
-      // for receiving purposes
-      newList.insert(newList.begin(),total);
-    }
-  }
+//     if(i+1 >= buf[0]+1){
+//       // Add the total to the beginning of the new list
+//       // for receiving purposes
+//       newList.insert(newList.begin(),total);
+//     }
+//   }
 
-  // Make a pointer to the internal array the vector uses.
-  int *newArray = &newList[0];
+//   // Make a pointer to the internal array the vector uses.
+//   int *newArray = &newList[0];
 
-  // int listSize = buf[0];
-  // cout << "client received: ";
-  // for (int i = 0; i < listSize; i++) {
-  //   cout << buf[i];
-  // }
-  // cout << endl;
+//   // int listSize = buf[0];
+//   // cout << "client received: ";
+//   // for (int i = 0; i < listSize; i++) {
+//   //   cout << buf[i];
+//   // }
+//   // cout << endl;
 
-  // int *newArray = sieve(buf, listMax);
+//   // int *newArray = sieve(buf, listMax);
 
-  //send numbers to server (let's send odd numbers back)
-  if (send(sockfd, newArray, sizeof(int)*(newArray[0]+1), 0) == -1) {
-    perror("send");
-  }
+//   //send numbers to server (let's send odd numbers back)
+//   if (send(sockfd, newArray, sizeof(int)*(newArray[0]+1), 0) == -1) {
+//     perror("send");
+//   }
 
-  // Return the new array after having run the seive
-  return newArray;
-}
+//   // Return the new array after having run the seive
+//   return newArray;
+// }
 
 // Takes in a list where the first number is the size of the list
 // int *Client::sieve(int *list, int listMax) {
@@ -209,19 +209,17 @@ int *Client::comm(int sockfd, int listMax) {
 //   return newArray;
 // }
 
-vector<int> Client::sieve(int sockfd, unsigned long listMax) {
+vector<int> Client::sieve(int sockfd, int listMax) {
 
   //PREPARATION
-  unsigned long list[listMax + 1];  //used to create sieveList
-  unsigned long sieveList[listMax + 1]; //holds all numbers in list[] that aren't multiples of the 
+  int list[listMax + 1];  //used to create sieveList
+  int sieveList[listMax + 1]; //holds all numbers in list[] that aren't multiples of the 
                                           //first list number in the list, plus 2 helper variables. 
                                           //Starts out empty
   vector<int> masterList; //our return value at the end of the sieve
-			  //decided to use a vector for it's Arraylist-like properties
-			  //I don't think it'll cause data sending issues, but it may be slow...
 
   //populate sieveList with numbers 2 through listMax starting at sieveList[1] (not 0)
-  for(unsigned long i = 2; i < listMax + 1; i++){
+  for(int i = 2; i < listMax + 1; i++){
     list[i - 1] = i;
   }
   list[0] = listMax; //the first variable in a sieveList is the size of the list 
@@ -229,8 +227,8 @@ vector<int> Client::sieve(int sockfd, unsigned long listMax) {
 
   //With a list made, start the sieve
   while(1){
-    if(list[1] > (unsigned long)sqrt((double) listMax)){
-      for(unsigned long i = 2; i < sieveList[0]+1; i++){ //add all numbers still in sieveList to the masterList
+    if(list[1] > (int)sqrt((double) listMax)){
+      for(int i = 2; i < sieveList[0]+1; i++){ //add all numbers still in sieveList to the masterList
         // masterList[masterLength] = sieveList[i];
         // masterLength++;
         masterList.push_back(sieveList[i]);
@@ -251,8 +249,8 @@ vector<int> Client::sieve(int sockfd, unsigned long listMax) {
 
       //do a step of the sieve:
       // cout << endl << "doing sieve with " << list[1] << endl;
-      unsigned long j = 1;
-      for(unsigned long i = 2; i <= list[0]; i++){ //Note: list[1] is prime. we want to check list[2] to the end.
+      int j = 1;
+      for(int i = 2; i <= list[0]; i++){ //Note: list[1] is prime. we want to check list[2] to the end.
 
         if(list[i] % list[1] != 0){ //in other words, "if this number is not a multiple of the 
                                     //prime number being checked"
@@ -275,9 +273,18 @@ vector<int> Client::sieve(int sockfd, unsigned long listMax) {
       /*
       code block to send data to the other machine, called Server
       */
-      if (send(sockfd, sieveList, sizeof(unsigned long)*(sieveList[0]+1), 0) == -1) {
-        perror("Client: send");
+
+      // Send size of list in bytes
+      unsigned long int dataSize = htonl(sizeof(sieveList)); // host to network byte-order
+      cout << "Sending dataSize: " << sizeof(sieveList) << endl;
+      if (send(sockfd, (const char *)&dataSize, sizeof(unsigned long int), 0) == -1) {
+        perror("Client: send dataSize");
       }
+
+      if (send(sockfd, sieveList, sizeof(sieveList), 0) == -1) {
+        perror("Client: send sieveList");
+      }
+
       cout << "Sent: ";
       // for (int i = 0; i <= sieveList[0]; i++) {
       //   cout << sieveList[i] << " ";
@@ -291,11 +298,10 @@ vector<int> Client::sieve(int sockfd, unsigned long listMax) {
       /*
       code block to recieve data from the Server. data is loaded into list[]
       */
-      int numbytes; //why is there another one of these down here? does it clear
-      unsigned long dataSize;
-
-      //Need a loop here...
-      if ((numbytes = recv(sockfd, (char *)&dataSize, sizeof(unsigned long), 0)) == -1) { 
+      // Receive data size
+      int numbytes;
+      // unsigned long int dataSize;
+      if ((numbytes = recv(sockfd, (char *)&dataSize, sizeof(unsigned long int), 0)) == -1) { 
         //triggers if recieving too much data at once
         perror("Client: recv");
         exit(1);
@@ -305,15 +311,35 @@ vector<int> Client::sieve(int sockfd, unsigned long listMax) {
         cout << "RECEIVED dataSize: " << dataSize << endl;
       }
 
-      numbytes = 0; // reset numbytes
-      if ((numbytes = recv(sockfd, list, dataSize, 0)) == -1) { 
-        //triggers if recieving too much data at once
-        perror("Client: recv");
-        exit(1);
+      // Receive list
+      int totalBytes = 0; // reset numbytes
+      bool recvDone = false;
+      char buf[MAXDATASIZE];
+      while (!recvDone) {
+        int currentBytes = 0;
+        if ((currentBytes = recv(sockfd, buf+totalBytes, dataSize, 0)) == -1) { 
+          //triggers if recieving too much data at once
+          perror("Client: recv");
+          exit(1);
+        }
+        cout << "currentBytes: " << currentBytes << endl;
+        if (currentBytes == 0) {
+          recvDone = true;
+          perror("client: server closed connection");
+        } else {
+
+          totalBytes += currentBytes;
+
+          if (totalBytes == dataSize) {
+            recvDone = true;
+          }
+        }
       }
 
+      memcpy(list, buf, dataSize);
+
       // received something from client
-      if (numbytes != 0) {
+      if (totalBytes != 0) {
         // cout << "list size: " << list[0] << endl;
         printf("Recvd: ");
         // for(int i = 0; i < (list[0]+1); i++){
@@ -321,10 +347,7 @@ vector<int> Client::sieve(int sockfd, unsigned long listMax) {
         // }
         // printf("\n");
         printList(list);
-        cout << endl;
-
-      } else {
-        perror("client: server closed connection");
+        cout << endl; 
       }
 
     } // end if/else
@@ -333,15 +356,15 @@ vector<int> Client::sieve(int sockfd, unsigned long listMax) {
 }
 
 // Assumes list[0] is length of list
-void Client::printList(unsigned long *list) {
+void Client::printList(int *list) {
   int length = list[0];
   if (list[0] <= 5) { // print whole list
-    for (unsigned long i = 1; i <= length; i++) {
+    for (int i = 1; i <= length; i++) {
       cout << list[i] << " ";
     }
     cout << endl;
   } else { // print first five + ...
-    for (unsigned long i = 1; i <= 5; i++) {
+    for (int i = 1; i <= 5; i++) {
       cout << list[i] << " ";
     }
     cout << "..." << endl;
