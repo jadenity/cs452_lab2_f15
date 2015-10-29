@@ -12,8 +12,7 @@ class Server {
     const char *getPort();
     int setup();
     void *get_in_addr(struct sockaddr *sa);
-    // void comm(int sockfd);
-    int sieve(int sockfd, int listMax);
+    int sieve(int sockfd);
     int sendall(int sockfd, int *buf, int *len);
     void printList(int *list);
   
