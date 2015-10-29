@@ -385,7 +385,41 @@ The servers (thing 4, thing 5, etc.) crashed, so we're stuck not doing work for 
 
 Partner tried sending larger sets of data. While smaller data sets run fine, sending larger data sets causes only partial data sending. 40,000 is/was the best we can do.
 Also, trying to run valgrind with large numbers seems to result in crashes. I've tried it with smaller numbers and didn't have problems though, so I'll ignore valgrind now.
+	It seems to fail consistently
 
 I switched my side of the code from int to unsigned long. I'm not sure if this is the right thing though, so I'm keeping a clone of the project that sticks with using ints.
 
 I think the real problem is in sending the data. We don't have loops or at least not using anything to make sure send() sends everything or recieve() gets everything.
+
+Things look pretty random. It looks like sending more bytes increases the odds of some of the data not being sent.
+	"Some of the data not being sent" is actually random massive numbers being sent followed by an incorrect sieve that ends early.
+
+
+Shouldn't recieve() wait to fill the buffer completely before doing anything? Are we making sure this happens?
+	stack overflow suggests "excess bytes may be discarded depending on the *type of socket* the message is received *from*", so we need the right buffer.
+
+~Partner added a recieve loop to make sure all data was recieved. Now we can do a multi-machine sieve up to about 214,250. Random failure is less likely, but still occurs.
+	We may be hitting data type limits, such as too big a number for data type "int", but maybe not another.
+	We could also have a memory issue and we have to release memory at the right points.
+
+~Partner dynamically allocated lists by, for example, changing int list[] to int* list[], and we can go up to 500,000 now.
+A couple more changes, and we got to 1,000,000. Not too far from 10 million. I wonder if we'd be able to do 10 million and beyond if we used the right data type/structure...
+
+MAXDATASIZE may also be the problem,as setting that too high causes the program not to run right either.
+
+
+
+!!!!!!!!!!SUCCESS!!!!!!!!!!
+
+
+
+After dynamically allocating the buffer, we can do not just 10 million, but 20 million!! 20 million takes about 15 seconds (and that's with a few debug outputs).
+	Looks like it was primarily a memory issue after all.
+
+Almost forgot to free the memory the buffer was using. Actually, using "delete[] buf" doesn't let the program work at all... Guess we're going to deal with it.
+
+
+Did a final test: 100 million numbers takes about 2 minutes and 40 seconds.
+
+
+END OF DOCUMENT (my partner's got things from here, such as finishing touches on the code)
